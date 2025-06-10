@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 
 // Types
 
+
+
 export interface Song {
     id: string;
     name: string;
@@ -13,6 +15,12 @@ export interface Song {
     genre: string; // Genre metadata text
     url: string; // URL to the song file
     metadata: {} // Additional metadata as an object
+}
+
+export interface AlbumMetadata {
+    releaseDate: string; // Release date of the album
+    label: string; // Record label of the album
+    description: string; // Description of the album
 }
 
 export interface Album {

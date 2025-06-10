@@ -20,7 +20,6 @@ import {
 import Image from 'next/image';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import type { Song } from '@/app/actions'; // Adjust the import path as needed
 // This component is the actual persistent player UI
 export default function PersistentAudioPlayerUI() {
     const {
@@ -43,7 +42,6 @@ export default function PersistentAudioPlayerUI() {
     const [isMuted, setIsMuted] = useState(false);
     const [isShuffling, setIsShuffling] = useState(false);
     const [isRepeating, setIsRepeating] = useState(false);
-    const [trackUrlInput, setTrackUrlInput] = useState("");
 
     useEffect(() => {
         setIsMounted(true);
@@ -70,25 +68,6 @@ export default function PersistentAudioPlayerUI() {
             seek(seekPosition * duration);
         }
     };
-    /*
-    const handleLoadTrackFromUrl = () => {
-        if (!trackUrlInput.trim()) {
-            // Optionally, show an error message to the user
-            console.warn("Track URL input is empty.");
-            return;
-        }
-        const newTrack: Song = {
-            name: trackUrlInput.split('/').pop()?.split('.')[0] || "Track from URL", // Basic title extraction
-            artist: "Unknown Artist",
-            coverArt: "/music.svg", // Default cover, consider fetching metadata if possible
-            url: trackUrlInput.trim(),
-        };
-        // This will replace the current playlist with the new track.
-        // To add to the playlist: loadTracks([...tracks, newTrack]);
-        loadTracks([newTrack]); 
-        setTrackUrlInput(""); // Clear the input field
-    };
-    */
 
     const handleVolumeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const newVolume = parseFloat(event.target.value);
@@ -164,24 +143,7 @@ export default function PersistentAudioPlayerUI() {
             </div>
         );
     }
-    /*
-    const urlInputSection = (
-        <div className="flex items-center gap-2">
-            <Input 
-                type="text" 
-                placeholder="Enter track URL" 
-                value={trackUrlInput} 
-                onChange={(e) => setTrackUrlInput(e.target.value)}
-                className="h-9 text-sm"
-            />
-            <Button onClick={handleLoadTrackFromUrl} size="icon" variant="ghost" title="Load track from URL">
-                <PlusCircleIcon className="w-5 h-5" />
-            </Button>
-        </div>
-    );
-    */
-
-    // If no tracks are loaded yet, show URL input
+    // If no tracks are loaded yet, show a message prompting the user to select a track
     if (tracks.length === 0) {
         return (
             <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
@@ -236,7 +198,8 @@ export default function PersistentAudioPlayerUI() {
 
                 {/* Middle item: Group for core player elements */}
                 {/* This group will sit between the Home button and Volume controls */}
-                <div className="flex items-center gap-3"> 
+                {/* Added w-[600px] (example fixed width, adjust as needed) and min-w-0 */}
+                <div className="flex items-center gap-3 justify-center w-[600px] min-w-0"> 
                     <Image
                         src={currentTrack.coverArt || "/music.svg"}
                         alt={currentTrack.name || "Album Cover"}

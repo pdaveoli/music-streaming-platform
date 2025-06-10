@@ -2,7 +2,7 @@ import type { PageProps } from "@/.next/types/app/page";
 import { getAlbumById, getSongById, Song } from "@/app/actions";
 import { SongList } from "@/components/song-list";
 import { redirect } from "next/navigation";
-
+import { ExpandableDescription } from "@/components/ExpandableDescription"; // Import the new component
 
 
 export default async function AlbumPage(params : PageProps) {
@@ -41,6 +41,9 @@ export default async function AlbumPage(params : PageProps) {
             />
             <h1 className="text-4xl font-bold mb-4">{album?.name}</h1>
             <p className="text-lg text-gray-600 mb-4">Artist: {album?.artist}</p>
+            <p className="text-base text-gray-800 mb-4">{album?.genre} • {album?.metadata?.releaseDate}</p>
+            {/* Replace the old p tag with the ExpandableDescription component */}
+            <ExpandableDescription text={album?.metadata?.description} truncateLength={150} />
         </div>
         <div>
             <SongList songs={songs} />
