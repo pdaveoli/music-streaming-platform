@@ -1,11 +1,12 @@
+import type { PageProps } from "@/.next/types/app/page";
 import { getAlbumById, getSongById, Song } from "@/app/actions";
 import { SongList } from "@/components/song-list";
 import { redirect } from "next/navigation";
 
 
 
-export default async function AlbumPage(params : any) {
-    const { id } = await params;
+export default async function AlbumPage(params : PageProps) {
+    const { id } = await params.params;
 
     if (!id) { redirect("/home") }
     
