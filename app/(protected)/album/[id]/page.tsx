@@ -1,13 +1,13 @@
 import { getAlbumById, getSongById, Song } from "@/app/actions";
 import { SongList } from "@/components/song-list";
+import { redirect } from "next/navigation";
 
-type AlbumPageProps = {
-  params: { id: string };
-  searchParams?: { [key: string]: string | string[] | undefined }; // Optional: if you use searchParams
-};
 
-export default async function AlbumPage({ params }: AlbumPageProps) {
+
+export default async function AlbumPage(params : any) {
     const { id } = await params;
+
+    if (!id) { redirect("/home") }
     
     // Fetch album data based on the ID
     const album = await getAlbumById(id);
