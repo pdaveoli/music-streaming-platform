@@ -1,8 +1,12 @@
 import { getAlbumById, getSongById, Song } from "@/app/actions";
-import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
 import { SongList } from "@/components/song-list";
-export default async function AlbumPage({ params }: { params: { id: string } }) {
+
+type AlbumPageProps = {
+  params: { id: string };
+  searchParams?: { [key: string]: string | string[] | undefined }; // Optional: if you use searchParams
+};
+
+export default async function AlbumPage({ params }: AlbumPageProps) {
     const { id } = await params;
     
     // Fetch album data based on the ID
