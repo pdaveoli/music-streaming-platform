@@ -1,0 +1,254 @@
+"use client";
+
+import { Artist } from "@/app/actions";
+import React, { useRef, useState } from "react";
+import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
+import { Button } from "../ui/button";
+import { Check, ChevronsUpDown } from "lucide-react";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "../ui/command";
+import { cn } from "@/lib/utils";
+import { PutBlobResult } from "@vercel/blob";
+import { upload } from "@vercel/blob/client";
+import { createClient } from "@/lib/supabase/client";
+
+interface SongUploadProps {
+  artists: Artist[];
+}
+
+export default function SongUpload({ artists }: SongUploadProps) {
+  const inputFileRef = useRef<HTMLInputElement>(null);
+  const [blob, setBlob] = useState<PutBlobResult | null>(null);
+   const [open, setOpen] = React.useState(false);
+  const [value, setValue] = React.useState("");
+  if (!artists || artists.length === 0) {
+    return (
+      <p className="text-red-500">
+        No artists available. Please add an artist first.
+      </p>
+    );
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+
+    e.preventDefault();
+
+    // get form data
+    const formData = new FormData(e.currentTarget);
+    const songTitle = formData.get("songTitle") as string;
+    const coverArt = formData.get("coverArt") as string;
+    const genre = formData.get("genre") as string;
+    const duration = formData.get("duration") as string;
+    const description = formData.get("description") as string;
+    const label = formData.get("label") as string;
+    const releaseDate = formData.get("releaseDate") as string;
+    const artist = value;
+
+    if (!inputFileRef.current?.files) {
+      throw new Error("No file selected");
+    }
+    const file = inputFileRef.current.files[0];
+
+    const selectedArtistObject = artists.find(artist => artist.name === value);
+    const artistNameForPath = selectedArtistObject 
+      ? selectedArtistObject.name.replace(/\s+/g, '_') // Replace spaces with underscores for a cleaner path
+      : 'unknown_artist';
+    const pathName = `songs/${artistNameForPath}/${file.name}`;
+
+    const newBlob = await upload(pathName, file, {
+      access: "public",
+      handleUploadUrl: "/api/song/upload",
+    });
+
+    setBlob(newBlob);
+    // upload to supabase
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from("songs")
+        .insert({
+          name: songTitle,
+          artist: artist,
+          coverArt: coverArt,
+          genre: genre,
+          duration: duration,
+          url: newBlob.url, // Use the URL from the uploaded blob
+          metadata: {
+            description: description,
+            label: label,
+            releaseDate: releaseDate,
+          }, // Add any additional metadata if needed
+        });
+    if (error) {
+        console.error("Error uploading song:", error);
+        return;
+        }
+    console.log("Song uploaded successfully:", data);
+    // Reset the form
+    setValue("");
+    setOpen(false);
+};
+
+ 
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex flex-col">
+        <label
+          htmlFor="songTitle"
+          className="text-sm font-medium text-gray-700"
+        >
+          Song Title
+        </label>
+        <input type="text" id="songTitle" name="songTitle" required />
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor="artist" className="text-sm font-medium text-gray-700">
+          Artist
+        </label>
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              role="combobox"
+              aria-expanded={open}
+              className="w-[200px] justify-between"
+            >
+              {value
+                ? artists.find((artist) => artist.id === value)?.name
+                : "Select artist..."}
+              <ChevronsUpDown className="opacity-50" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-[200px] p-0">
+            <Command>
+              <CommandInput placeholder="Search artist..." className="h-9" />
+              <CommandList>
+                <CommandEmpty>No artist found.</CommandEmpty>
+                <CommandGroup>
+                  {artists.map((artist) => (
+                    <CommandItem
+                      key={artist.id}
+                      value={artist.name}
+                      onSelect={(currentValue) => {
+                        setValue(currentValue === value ? "" : currentValue);
+                        setOpen(false);
+                      }}
+                    >
+                      {artist.name}
+                      <Check
+                        className={cn(
+                          "ml-auto",
+                          value === artist.name ? "opacity-100" : "opacity-0"
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+                </CommandGroup>
+              </CommandList>
+            </Command>
+          </PopoverContent>
+        </Popover>
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor="songFile" className="text-sm font-medium text-gray-700">
+          Upload Song File
+        </label>
+        <input
+          type="file"
+          id="songFile"
+          name="songFile"
+          accept="audio/*"
+          ref={inputFileRef}
+          required
+        />
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor="coverArt" className="text-sm font-medium text-gray-700">
+          Cover Art
+        </label>
+        <input
+          type="url"
+          id="coverArt"
+          name="coverArt"
+          placeholder="Enter URL for cover art"
+          required
+        />
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor="genre" className="text-sm font-medium text-gray-700">
+          Genre
+        </label>
+        <input
+          type="text"
+          id="genre"
+          name="genre"
+          placeholder="Enter genre"
+          required
+        />
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor="duration" className="text-sm font-medium text-gray-700">
+          Duration
+        </label>
+        <input
+          type="text"
+          id="duration"
+          name="duration"
+          placeholder="Enter duration (e.g., 3:45)"
+          required
+        />
+      </div>
+      <div className="flex flex-col">
+        <label
+          htmlFor="description"
+          className="text-sm font-medium text-gray-700"
+        >
+          Description
+        </label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="Enter a brief description of the song"
+          className="resize-none h-24"
+          required
+        ></textarea>
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor="label" className="text-sm font-medium text-gray-700">
+          Record Label
+        </label>
+        <input
+          type="text"
+          id="label"
+          name="label"
+          placeholder="Enter record label"
+          required
+        />
+      </div>
+      <div className="flex flex-col">
+        <label
+          htmlFor="releaseDate"
+          className="text-sm font-medium text-gray-700"
+        >
+          Release Date
+        </label>
+        <input
+          type="text"
+          id="releaseDate"
+          name="releaseDate"
+          placeholder="Enter release date"
+          required
+        />
+      </div>
+      <Button type="submit" className="w-full">
+        Upload Song
+      </Button>
+    </form>
+  );
+}

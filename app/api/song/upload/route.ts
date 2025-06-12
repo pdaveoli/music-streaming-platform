@@ -15,7 +15,7 @@ export async function POST(request: Request): Promise<NextResponse> {
             ) => {
                 return {
                     allowedContentTypes: ["audio/mpeg", "audio/wav"],
-                    addRandomSuffix: true,
+                    addRandomSuffix: false,
                     tokenPayload: null,
                 };
             },

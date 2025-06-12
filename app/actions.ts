@@ -37,6 +37,28 @@ export interface Playlist {
 
 }
 
+export interface Artist {
+    id: string;
+    name: string;
+    description: string;
+    pictureUrl: string; // URL to the artist's picture
+    genre: string; // Genre of the artist
+    started: string,
+    from: string
+}
+
+export async function getArtists() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("artists")
+        .select("*");
+    if (error) {
+        console.error("Error fetching artists:", error);
+        return [];
+    }
+    return data;
+}
+
 export async function getSongs() {
     const supabase = await createClient();
     const { data, error } = await supabase
