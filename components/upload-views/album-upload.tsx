@@ -40,7 +40,6 @@ export default function AlbumUpload({songs} : {songs: Song[]}) {
                 coverArt: albumCover,
                 genre: genre,
                 songsIds: songs,
-                genre: genre,
                 metadata: {
                     releaseDate: releaseDate,
                     description: description,
@@ -55,7 +54,7 @@ export default function AlbumUpload({songs} : {songs: Song[]}) {
             console.log("Album uploaded successfully:", data);
             alert("Album uploaded successfully!");
             event.currentTarget.reset(); // Reset the form after successful upload
-                    }
+        }
 
     }
 
