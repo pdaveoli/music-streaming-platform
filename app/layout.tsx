@@ -10,8 +10,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
-  title: "Next.js and Supabase Starter Kit",
-  description: "The fastest way to build apps with Next.js and Supabase",
+  title: "FreeStream - Free and Open Source Music Streaming Platform",
+  description: "Stream your favorite music for free, with no ads and no limits. Join the FreeStream community today!",
 };
 
 const geistSans = Geist({
@@ -30,9 +30,9 @@ export default function RootLayout({
       <body className={`${geistSans.className} antialiased`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
-          disableTransitionOnChange
+          
         >
           {children}
           <Footer />
