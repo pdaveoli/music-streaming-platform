@@ -10,7 +10,6 @@ export interface Song {
     name: string;
     artist: string;
     coverArt: string;
-    albumId: string;
     duration: string; // Duration metadata text
     genre: string; // Genre metadata text
     url: string; // URL to the song file
@@ -30,7 +29,7 @@ export interface Album {
     coverArt: string;
     genre: string; // Genre of the album
     songIds: string[]; // Array of song IDs in the album
-    metadata: {} // Additional metadata as an object
+    metadata: AlbumMetadata; // Additional metadata as an object
 }
 
 export interface Playlist {

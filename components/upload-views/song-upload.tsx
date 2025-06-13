@@ -97,18 +97,20 @@ export default function SongUpload({ artists }: SongUploadProps) {
  
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    
+    
+    <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 rounded-lg shadow-md">
       <div className="flex flex-col">
         <label
           htmlFor="songTitle"
-          className="text-sm font-medium text-gray-700"
+          className="text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Song Title
         </label>
-        <input type="text" id="songTitle" name="songTitle" required />
+        <input type="text" id="songTitle" name="songTitle" required className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" />
       </div>
       <div className="flex flex-col">
-        <label htmlFor="artist" className="text-sm font-medium text-gray-700">
+        <label htmlFor="artist" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Artist
         </label>
         <Popover open={open} onOpenChange={setOpen}>
@@ -117,10 +119,10 @@ export default function SongUpload({ artists }: SongUploadProps) {
               variant="outline"
               role="combobox"
               aria-expanded={open}
-              className="w-[200px] justify-between"
+              className="w-full justify-between"
             >
               {value
-                ? artists.find((artist) => artist.id === value)?.name
+                ? artists.find((artist) => artist.name === value)?.name
                 : "Select artist..."}
               <ChevronsUpDown className="opacity-50" />
             </Button>
@@ -156,7 +158,7 @@ export default function SongUpload({ artists }: SongUploadProps) {
         </Popover>
       </div>
       <div className="flex flex-col">
-        <label htmlFor="songFile" className="text-sm font-medium text-gray-700">
+        <label htmlFor="songFile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Upload Song File
         </label>
         <input
@@ -166,10 +168,11 @@ export default function SongUpload({ artists }: SongUploadProps) {
           accept="audio/*"
           ref={inputFileRef}
           required
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
       <div className="flex flex-col">
-        <label htmlFor="coverArt" className="text-sm font-medium text-gray-700">
+        <label htmlFor="coverArt" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Cover Art
         </label>
         <input
@@ -178,10 +181,11 @@ export default function SongUpload({ artists }: SongUploadProps) {
           name="coverArt"
           placeholder="Enter URL for cover art"
           required
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
       <div className="flex flex-col">
-        <label htmlFor="genre" className="text-sm font-medium text-gray-700">
+        <label htmlFor="genre" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Genre
         </label>
         <input
@@ -190,10 +194,11 @@ export default function SongUpload({ artists }: SongUploadProps) {
           name="genre"
           placeholder="Enter genre"
           required
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
       <div className="flex flex-col">
-        <label htmlFor="duration" className="text-sm font-medium text-gray-700">
+        <label htmlFor="duration" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Duration
         </label>
         <input
@@ -202,12 +207,13 @@ export default function SongUpload({ artists }: SongUploadProps) {
           name="duration"
           placeholder="Enter duration (e.g., 3:45)"
           required
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
       <div className="flex flex-col">
         <label
           htmlFor="description"
-          className="text-sm font-medium text-gray-700"
+          className="text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Description
         </label>
@@ -215,12 +221,12 @@ export default function SongUpload({ artists }: SongUploadProps) {
           id="description"
           name="description"
           placeholder="Enter a brief description of the song"
-          className="resize-none h-24"
+          className="resize-none h-24 mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           required
         ></textarea>
       </div>
       <div className="flex flex-col">
-        <label htmlFor="label" className="text-sm font-medium text-gray-700">
+        <label htmlFor="label" className="text-sm font-medium text-gray-700 dark:text-gray-300">
           Record Label
         </label>
         <input
@@ -229,12 +235,13 @@ export default function SongUpload({ artists }: SongUploadProps) {
           name="label"
           placeholder="Enter record label"
           required
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
       <div className="flex flex-col">
         <label
           htmlFor="releaseDate"
-          className="text-sm font-medium text-gray-700"
+          className="text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           Release Date
         </label>
@@ -244,11 +251,13 @@ export default function SongUpload({ artists }: SongUploadProps) {
           name="releaseDate"
           placeholder="Enter release date"
           required
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />
       </div>
-      <Button type="submit" className="w-full">
+      <Button type="submit" className="w-full mt-5">
         Upload Song
       </Button>
     </form>
+    
   );
 }

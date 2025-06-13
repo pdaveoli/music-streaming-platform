@@ -3,11 +3,12 @@ import SongUpload from "@/components/upload-views/song-upload"
 import AlbumUpload from "@/components/upload-views/album-upload"
 import PlaylistUpload from "@/components/upload-views/playlist-upload"
 import ArtistUpload from "@/components/upload-views/artist-upload"
-import { Artist, getArtists } from "@/app/actions"
+import { Artist, Song, getSongs, getArtists } from "@/app/actions"
 
 export default async function UploaderPage() {
 
     const artists : Artist[] = await getArtists();
+    const songs : Song[] = await getSongs();
 
     return (
         <div className="flex flex-col items-center h-screen">
@@ -24,7 +25,7 @@ export default async function UploaderPage() {
                     <SongUpload artists={artists} />
                 </TabsContent>
                 <TabsContent value="album">
-                    <AlbumUpload />
+                    <AlbumUpload songs={songs} />
                 </TabsContent>
                 <TabsContent value="playlist">
                     <PlaylistUpload />
