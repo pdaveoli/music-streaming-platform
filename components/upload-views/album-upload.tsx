@@ -1,3 +1,4 @@
+"use client";
 import type { Song } from '@/app/actions';
 import {
   Select,
@@ -5,13 +6,34 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select" // Keep for other potential single selects, or remove if not used elsewhere
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import * as React from "react"; // Import React
+import { Check, ChevronsUpDown } from "lucide-react"; // For icons
 
-export default function AlbumUpload({songs} : {songs: Song[]}) {
+import { cn } from "@/lib/utils"; // For conditional class names
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox"; // Import Checkbox
 
-    if (!songs || songs.length === 0) {
+export default function AlbumUpload({songs: availableSongs} : {songs: Song[]}) { // Renamed prop to avoid conflict
+    const [selectedSongIds, setSelectedSongIds] = React.useState<string[]>([]);
+    const [openSongSelector, setOpenSongSelector] = React.useState(false);
+
+
+    if (!availableSongs || availableSongs.length === 0) {
         return (
         <div className="text-center text-red-500">
             No songs available to select. Please upload songs first.
@@ -26,7 +48,7 @@ export default function AlbumUpload({songs} : {songs: Song[]}) {
         const artistName = formData.get("artistName") as string;
         const albumCover = formData.get("albumCover") as string;
         const genre = formData.get("genre") as string;
-        const songs = formData.getAll("songs") as string[];
+        // const songs = formData.getAll("songs") as string[]; // Get selected songs from state
         const releaseDate = formData.get("releaseDate") as string;
         const description = formData.get("description") as string;
         const label = formData.get("label") as string;
@@ -39,7 +61,7 @@ export default function AlbumUpload({songs} : {songs: Song[]}) {
                 artist: artistName,
                 coverArt: albumCover,
                 genre: genre,
-                songsIds: songs,
+                songsIds: selectedSongIds, // Use state variable here
                 metadata: {
                     releaseDate: releaseDate,
                     description: description,
@@ -54,6 +76,7 @@ export default function AlbumUpload({songs} : {songs: Song[]}) {
             console.log("Album uploaded successfully:", data);
             alert("Album uploaded successfully!");
             event.currentTarget.reset(); // Reset the form after successful upload
+            setSelectedSongIds([]); // Reset selected songs
         }
 
     }
@@ -63,7 +86,7 @@ export default function AlbumUpload({songs} : {songs: Song[]}) {
       <h1 className="text-center text-2xl font-bold text-gray-800 dark:text-gray-200">
         Album Upload
       </h1>
-      <form className="max-w-md mx-auto p-6 rounded-lg shadow-md">
+      <form onSubmit={handleSubmit} className="max-w-md mx-auto p-6 rounded-lg shadow-md">
         <div className="mb-4">
           <label
             htmlFor="albumName"
@@ -128,28 +151,75 @@ export default function AlbumUpload({songs} : {songs: Song[]}) {
         </div>
         <div className="mb-4">
             <label
-                htmlFor="songs"
+                htmlFor="songs-selector" // Changed ID to avoid conflict if "songs" is used elsewhere
                 className="block text-sm font-medium text-gray-700 dark:text-gray-300"
             >
             Songs
             </label>
-            <Select
-              id="songs"
-              name="songs"
-              multiple
-              className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select songs" />
-              </SelectTrigger>
-              <SelectContent>
-                {songs?.map((song) => (
-                  <SelectItem key={song.id} value={song.name}>
-                    {song.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={openSongSelector} onOpenChange={setOpenSongSelector}>
+              <PopoverTrigger asChild>
+                <Button
+                  id="songs-selector"
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={openSongSelector}
+                  className="w-full justify-between mt-1"
+                >
+                  {selectedSongIds.length > 0
+                    ? `${selectedSongIds.length} song(s) selected`
+                    : "Select songs..."}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                <Command>
+                  <CommandInput placeholder="Search songs..." />
+                  <CommandList>
+                    <CommandEmpty>No songs found.</CommandEmpty>
+                    <CommandGroup>
+                      {availableSongs?.map((song) => (
+                        <CommandItem
+                          key={song.id}
+                          value={song.id} // Use song.id for value
+                          onSelect={(currentValue) => {
+                            // currentValue is song.id here
+                            setSelectedSongIds((prevSelected) =>
+                              prevSelected.includes(currentValue)
+                                ? prevSelected.filter((id) => id !== currentValue)
+                                : [...prevSelected, currentValue]
+                            );
+                            // Keep the popover open for multiple selections
+                            // setOpenSongSelector(false); 
+                          }}
+                        >
+                          <Checkbox
+                            className="mr-2"
+                            checked={selectedSongIds.includes(song.id)}
+                            onCheckedChange={(checked) => {
+                               setSelectedSongIds((prevSelected) =>
+                                checked
+                                ? [...prevSelected, song.id]
+                                : prevSelected.filter((id) => id !== song.id)
+                               );
+                            }}
+                            id={`song-${song.id}`}
+                          />
+                           <label htmlFor={`song-${song.id}`} className="cursor-pointer flex-1">{song.name}</label>
+                          <Check
+                            className={cn(
+                              "ml-auto h-4 w-4",
+                              selectedSongIds.includes(song.id)
+                                ? "opacity-100"
+                                : "opacity-0"
+                            )}
+                          />
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
           <div className="mb-4">
             <label
