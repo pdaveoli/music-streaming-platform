@@ -61,7 +61,7 @@ export default function AlbumUpload({songs: availableSongs} : {songs: Song[]}) {
                 artist: artistName,
                 coverArt: albumCover,
                 genre: genre,
-                songsIds: selectedSongIds, // Use state variable here
+                songIds: selectedSongIds, // Use state variable here
                 metadata: {
                     releaseDate: releaseDate,
                     description: description,

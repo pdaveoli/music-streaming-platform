@@ -20,6 +20,8 @@ interface AudioContextType {
     loadTracks: (newTracks: Song[]) => void;
 }
 
+
+
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export const AudioProvider = ({ children }: { children: ReactNode }) => {
@@ -207,36 +209,7 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [currentTrackIndex, tracks, isPlaying]); // Added isPlaying back
 
-    // Effect for isPlaying state changes (e.g., after togglePlayPause)
-    // This effect might be redundant if the above effect correctly handles isPlaying.
-    // Let's simplify and rely on the primary effect for track changes and isPlaying.
-    /*
-     useEffect(() => {
-        const audio = audioRef.current;
-        if (!audio || currentTrackIndex === null || !tracks[currentTrackIndex]) return;
-
-        // Ensure src is set before trying to play/pause based on isPlaying
-        if (audio.src !== tracks[currentTrackIndex].url && isPlaying) {
-            // If src is not set and we want to play, the other effect should handle loading it.
-            // This effect should primarily react to play/pause commands on an already loaded/loading track.
-            return; 
-        }
-
-        if (isPlaying) {
-            const playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    console.error("Error in isPlaying effect (play):", error);
-                    setIsPlaying(false);
-                });
-            }
-        } else {
-            audio.pause();
-        }
-    }, [isPlaying, currentTrackIndex, tracks]); // tracks dependency to re-evaluate if track list changes
-    */
-   // Removing the second useEffect for isPlaying as the first one now depends on isPlaying
-   // and should handle the logic more cohesively.
+    
 
 
     // Effect for audio events (timeupdate, loadedmetadata, ended)

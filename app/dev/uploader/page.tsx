@@ -11,7 +11,7 @@ export default async function UploaderPage() {
     const songs : Song[] = await getSongs();
 
     return (
-        <div className="flex flex-col items-center h-screen">
+        <div className="flex flex-col items-center h-[calc(100vh+64px)] justify-center p-4 bg-gray-100">
             <h1 className="text-2xl font-bold mb-4">Upload Your Music</h1>
             <p className="text-gray-600 mb-8">Select the type of content you want to upload:</p>
             <Tabs defaultValue="song" className="w-full max-w-2xl">

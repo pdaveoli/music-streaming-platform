@@ -13,6 +13,7 @@ export interface Song {
     duration: string; // Duration metadata text
     genre: string; // Genre metadata text
     url: string; // URL to the song file
+    lyricsUrl?: string; // Optional URL to the lyrics file
     metadata: {} // Additional metadata as an object
 }
 
