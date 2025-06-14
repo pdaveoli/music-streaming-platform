@@ -24,7 +24,9 @@ interface SongUploadProps {
 
 export default function SongUpload({ artists }: SongUploadProps) {
   const inputFileRef = useRef<HTMLInputElement>(null);
+  const lyricFileRef = useRef<HTMLInputElement>(null);
   const [blob, setBlob] = useState<PutBlobResult | null>(null);
+  const [blob2, setBlob2] = useState<PutBlobResult | null>(null);
    const [open, setOpen] = React.useState(false);
   const [value, setValue] = React.useState("");
   if (!artists || artists.length === 0) {
@@ -67,6 +69,26 @@ export default function SongUpload({ artists }: SongUploadProps) {
     });
 
     setBlob(newBlob);
+
+    // upload lyric file if provided
+    if (lyricFileRef.current?.files && lyricFileRef.current.files.length > 0) {
+      const lyricFile = lyricFileRef.current.files[0];
+      const lyricPathName = `lyrics/${artistNameForPath}/${lyricFile.name}`;
+      const newBlob2 = await upload(lyricPathName, lyricFile, {
+        access: "public",
+        handleUploadUrl: "/api/song/upload-lyric",
+      });
+      setBlob2(newBlob2);
+    }
+
+    // Check if the blob was created successfully
+    if (!newBlob || !newBlob.url) {
+      console.error("Failed to create blob or get URL");
+      return;
+    }
+
+    // Log the blob URL for debugging
+    console.log("Blob URL:", newBlob.url);
     // upload to supabase
     const supabase = createClient();
     const { data, error } = await supabase
@@ -77,6 +99,7 @@ export default function SongUpload({ artists }: SongUploadProps) {
           coverArt: coverArt,
           genre: genre,
           duration: duration,
+          lyricsUrl: blob2?.url,
           url: newBlob.url, // Use the URL from the uploaded blob
           metadata: {
             description: description,
@@ -167,6 +190,20 @@ export default function SongUpload({ artists }: SongUploadProps) {
           name="songFile"
           accept="audio/*"
           ref={inputFileRef}
+          required
+          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+        />
+      </div>
+      <div className="flex flex-col">
+        <label htmlFor="lyricFile" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+          Upload Lyric File
+        </label>
+        <input
+          type="file"
+          id="lyricFile"
+          name="lyricFile"
+          accept=".lrc"
+          ref={lyricFileRef}
           required
           className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
         />

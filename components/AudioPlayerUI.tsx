@@ -27,7 +27,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; //
 // If these are defined in another file, ensure they are imported.
 // For this example, I'll assume they are available in this scope or imported.
 function parseLyrics(lrcContent: string): { time: number; text: string }[] {
-    const regex = /^\[(?<time>\d{2}:\d{2}(?:\.\d{2,3})?)\](?<text>.*)/;
+    // Changed regex to use numbered capturing groups instead of named ones
+    const regex = /^\[(\d{2}:\d{2}(?:\.\d{2,3})?)\](.*)/; 
     const lines = lrcContent.split('\n');
     const output: { time: number; text: string }[] = [];
 
@@ -40,8 +41,10 @@ function parseLyrics(lrcContent: string): { time: number; text: string }[] {
 
     lines.forEach(line => {
         const match = line.match(regex);
-        if (match && match.groups) {
-            const { time, text } = match.groups;
+        // Access groups by index: match[1] for time, match[2] for text
+        if (match && match[1] && match[2] !== undefined) { 
+            const time = match[1];
+            const text = match[2];
             if (text.trim() !== "") {
                  output.push({ time: parseTime(time), text: text.trim() });
             }
@@ -221,9 +224,7 @@ export default function PersistentAudioPlayerUI() {
     return (
       <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
         <div className="w-full flex items-center justify-between gap-3 h-[60px]">
-          <Link href="/home">
-            <Button variant="ghost" size="icon" title="Home"><HomeIcon className="w-5 h-5" /></Button>
-          </Link>
+          
           <p className="flex-grow text-center text-sm text-muted-foreground">Select a track to play</p>
           <div className="w-10 h-10"></div> {/* Spacer */}
         </div>
@@ -235,9 +236,7 @@ export default function PersistentAudioPlayerUI() {
     return (
       <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
         <div className="w-full flex items-center justify-between gap-3 h-[60px]">
-          <Link href="/home">
-            <Button variant="ghost" size="icon" title="Home"><HomeIcon className="w-5 h-5" /></Button>
-          </Link>
+          
           <p className="text-sm text-muted-foreground flex-grow text-center">No track selected.</p>
           <div className="w-10 h-10"></div> {/* Spacer */}
         </div>
@@ -249,9 +248,7 @@ export default function PersistentAudioPlayerUI() {
   return (
     <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
       <div className="w-full flex items-center justify-between h-[60px]">
-        <Link href="/home">
-          <Button variant="ghost" size="icon" title="Home"><HomeIcon className="w-5 h-5" /></Button>
-        </Link>
+        
 
         <div className="flex items-center gap-3 justify-center flex-grow min-w-0 px-4"> {/* Added px-4 for some breathing room */}
           <Image
@@ -303,15 +300,17 @@ export default function PersistentAudioPlayerUI() {
             </Button>
             {showLyrics && (
               <div
+                // Ensure this line uses backdrop-blur-* and not blur-*
                 className="absolute top-full right-0 mt-2 w-80 sm:w-96 md:w-[480px] 
-                           bg-gray-800/95 dark:bg-black/90 
+                           bg-gray-800/50 dark:bg-black/40 backdrop-blur-lg 
                            border border-gray-700 dark:border-gray-600
-                           rounded-xl shadow-2xl z-20 
+                           rounded-xl shadow-2xl z-20
                            flex flex-col
                            max-h-[70vh]
                            overflow-hidden
                            "
               >
+                
                 <div className="p-3 border-b border-gray-700 dark:border-gray-600">
                     <h4 className="text-sm font-medium text-center text-gray-200 dark:text-gray-300 truncate">
                         {currentTrack.name} - Lyrics
@@ -326,7 +325,7 @@ export default function PersistentAudioPlayerUI() {
                       const isActive = lyricsCurrentIndex === index;
                       const isPast = lyricsCurrentIndex !== null && lyricsCurrentIndex !== -1 && index < lyricsCurrentIndex;
                       
-                      let lineClasses = "lyric-line transition-all duration-100 ease-in-out text-center rounded-md p-1"; // Added padding for potential bg highlight
+                      let lineClasses = "lyric-line transition-all duration-50 ease-in-out text-center rounded-md p-1"; // Added padding for potential bg highlight
 
                       if (isActive) {
                         lineClasses += " text-xl sm:text-2xl md:text-3xl font-semibold text-white opacity-100 scale-90"; // Active: bright white, bold
@@ -340,7 +339,7 @@ export default function PersistentAudioPlayerUI() {
                         <p
                           key={`${lyric.time}-${index}`}
                           ref={isActive ? activeLyricLineRef : null}
-                          className={lineClasses}
+                          className={lineClasses} // Ensure no blur class is applied here directly
                         >
                           {lyric.text}
                         </p>
