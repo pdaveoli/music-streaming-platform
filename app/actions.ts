@@ -1,3 +1,4 @@
+"use server";
 // This script is responsible for handling actions to do with databases
 import { createClient } from "@/lib/supabase/server";
 
@@ -45,6 +46,102 @@ export interface Artist {
     genre: string; // Genre of the artist
     started: string,
     from: string
+}
+
+export async function getAlbumsByIds(ids: string[]): Promise<Album[]> {
+    let albums : Album[] = [];
+    for (const id of ids) {
+        const album = await getAlbumById(id);
+        if (album) {
+            albums.push(album);
+        }
+    }
+    return albums;
+}
+
+export async function isAlbumSaved(userId: string, albumId: string): Promise<boolean> {
+    const savedAlbums = (await getSavedAlbums(userId)).toString();
+    return savedAlbums.includes(albumId.toString());
+}
+
+export async function saveAlbumToLibrary(userId: string, albumId: string) {
+    const savedAlbums = await getSavedAlbums(userId);
+    const supabase = await createClient();
+    
+    // Check if the album is already saved
+    if (savedAlbums.includes(albumId.toString())) {
+        console.log("Album already saved to library.");
+        return;
+    }
+    
+    // Add the album to the user's saved albums
+    const updatedAlbums = [...savedAlbums, albumId]; // Use spread operator instead of push
+
+    const { error } = await supabase
+        .from("users")
+        .update({ library_albums: updatedAlbums })
+        .eq("id", userId);
+    
+    if (error) {
+        console.error("Error saving album to library:", error);
+        return;
+    }
+    
+    console.log("Album saved to library successfully.");
+}
+
+export async function unsaveAlbumFromLibrary(userId: string, albumId: string) {
+    const savedAlbums = await getSavedAlbums(userId);
+    const supabase = await createClient();
+    
+    // Check if the album is already saved
+    if (!savedAlbums.includes(albumId)) {
+        console.log("Album not found in library.");
+        return;
+    }
+    
+    // Remove the album from the user's saved albums
+    const updatedAlbums = savedAlbums.filter(id => id !== albumId);
+    
+    const { error } = await supabase
+        .from("users")
+        .update({ library_albums: updatedAlbums })
+        .eq("id", userId);
+    
+    if (error) {
+        console.error("Error unsaving album from library:", error);
+        return;
+    }
+    
+    console.log("Album unsaved from library successfully.");
+}
+
+export async function getSavedAlbums(userId: string): Promise<string[]> {
+    const supabase = await createClient();
+    
+    console.log("getSavedAlbums: Looking for user with ID:", userId);
+    
+    // Use array query instead of .single()
+    const { data, error } = await supabase
+        .from("users")
+        .select("library_albums")
+        .eq("id", userId);
+
+    console.log("getSavedAlbums: Query result:", data);
+    console.log("getSavedAlbums: Query error:", error);
+
+    if (error) {
+        console.error("Error fetching saved albums:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        console.error("No user found with ID:", userId);
+        return [];
+    }
+    
+    // Handle null values by returning empty array if library_albums is null
+    return data[0]?.library_albums || [];
 }
 
 export async function getArtists() {
