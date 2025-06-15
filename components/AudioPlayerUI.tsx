@@ -87,14 +87,16 @@ export default function PersistentAudioPlayerUI() {
     playNext,
     playPrev,
     seek,
+    toggleRepeat,
+    toggleShuffle,
+    shuffle,
+    repeat,
     // loadTracks, // Assuming loadTracks is used elsewhere or not directly in UI
   } = useAudio();
 
   const [isMounted, setIsMounted] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [isShuffling, setIsShuffling] = useState(false);
-  const [isRepeating, setIsRepeating] = useState(false);
 
   // Lyrics specific state
   const [syncedLyrics, setSyncedLyrics] = useState<{ time: number; text: string }[]>([]);
@@ -144,11 +146,7 @@ export default function PersistentAudioPlayerUI() {
     }
   };
 
-  const handleShuffle = () => setIsShuffling(!isShuffling); // Logic for shuffle needs to be in useAudio
-  const handleRepeat = () => {
-    setIsRepeating(!isRepeating);
-    if (audioRef.current) audioRef.current.loop = !isRepeating; // Basic loop, context might need more advanced repeat
-  };
+  
 
   const toggleMute = () => {
     if (audioRef.current) {
@@ -210,7 +208,6 @@ export default function PersistentAudioPlayerUI() {
       });
     }
   }, [lyricsCurrentIndex, showLyrics]); // Trigger on index change or when lyrics panel becomes visible
-
   if (!isMounted) {
     // Simplified loading skeleton for the player bar
     return (
@@ -269,11 +266,11 @@ export default function PersistentAudioPlayerUI() {
             </div>
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0"> {/* Adjusted gap for responsiveness */}
-            <Button variant="ghost" size="icon" onClick={handleShuffle} title="Shuffle">
-              <ShuffleIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${isShuffling ? "text-green-400" : ""}`} />
+            <Button variant="ghost" size="icon" onClick={toggleShuffle} title="Shuffle">
+              <ShuffleIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${shuffle ? "text-green-400" : ""}`} />
             </Button>
-            <Button variant="ghost" size="icon" onClick={handleRepeat} title="Repeat">
-              <RepeatIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${isRepeating ? "text-green-400" : ""}`} />
+            <Button variant="ghost" size="icon" onClick={toggleRepeat} title="Repeat">
+              <RepeatIcon className={`w-4 h-4 sm:w-5 sm:h-5 ${repeat ? "text-green-400" : ""}`} />
             </Button>
           </div>
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0"> {/* Adjusted gap */}

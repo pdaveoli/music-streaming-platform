@@ -89,6 +89,7 @@ export default function SongUpload({ artists }: SongUploadProps) {
 
     // Log the blob URL for debugging
     console.log("Blob URL:", newBlob.url);
+    console.log("Blob2 URL:", blob2?.url);
     // upload to supabase
     const supabase = createClient();
     const { data, error } = await supabase

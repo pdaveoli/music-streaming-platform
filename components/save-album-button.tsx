@@ -3,7 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { useState } from "react";
-import { useRouter } from "next/navigation"; // Import useRouter
+import { useRouter } from "next/navigation";
 
 interface SaveButtonProps {
   albumId: string;
@@ -12,10 +12,10 @@ interface SaveButtonProps {
   onToggle?: (newSavedState: boolean) => void;
 }
 
-export default function SaveButton({ albumId, isSaved, userId }: SaveButtonProps) {
+export default function SaveButton({ albumId, isSaved, userId, onToggle }: SaveButtonProps) {
   const [isLoading, setIsLoading] = useState(false);
-  const [currentSavedState, setCurrentSavedState] = useState(isSaved); // Track state locally for optimistic updates
-  const router = useRouter(); // Initialize router
+  const [currentSavedState, setCurrentSavedState] = useState(isSaved);
+  const router = useRouter();
 
   const toggleSave = async () => {
     if (!userId || !albumId) {
@@ -25,58 +25,56 @@ export default function SaveButton({ albumId, isSaved, userId }: SaveButtonProps
 
     setIsLoading(true);
     
-    // Optimistic update - immediately change the button state
-    const previousState = currentSavedState;
-    setCurrentSavedState(!currentSavedState);
+    // Store the current state BEFORE any changes
+    const wasAlreadySaved = currentSavedState;
+    console.log("Was album already saved?", wasAlreadySaved);
     
+    // Optimistic update - immediately change the button state
+    const newSavedState = !wasAlreadySaved;
+    setCurrentSavedState(newSavedState);
+
     try {
       const supabase = createClient();
       
-      // Debug: Log the userId to make sure it's correct
       console.log("Looking for user with ID:", userId);
       
-      // First, let's check if the user exists without .single()
       const { data: userCheck, error: checkError } = await supabase
         .from("users")
         .select("id, library_albums")
         .eq("id", userId);
 
       console.log("User check result:", userCheck);
-      console.log("User check error:", checkError);
 
       if (checkError) {
         console.error("Error checking user:", checkError);
-        // Revert optimistic update on error
-        setCurrentSavedState(previousState);
+        setCurrentSavedState(wasAlreadySaved); // Revert to original state
         return;
       }
 
       if (!userCheck || userCheck.length === 0) {
         console.error("User not found in users table with ID:", userId);
-        // Revert optimistic update on error
-        setCurrentSavedState(previousState);
-        return;
-      }
-
-      if (userCheck.length > 1) {
-        console.error("Multiple users found with same ID:", userId);
-        // Revert optimistic update on error
-        setCurrentSavedState(previousState);
+        setCurrentSavedState(wasAlreadySaved); // Revert to original state
         return;
       }
 
       const userData = userCheck[0];
-      
-      // Handle null values by providing empty array as fallback
       const savedAlbums = userData?.library_albums || [];
       let updatedAlbums;
 
-      if (currentSavedState) {
-        // We just changed to saved, so add to list
-        updatedAlbums = [...savedAlbums, albumId.toString()];
-      } else {
-        // We just changed to unsaved, so remove from list
+      // Use the ORIGINAL state (wasAlreadySaved) to determine the action
+      if (wasAlreadySaved) {
+        // Album was saved, so REMOVE it
         updatedAlbums = savedAlbums.filter((id: string) => id.toString() !== albumId.toString());
+        console.log("Removing album from saved list");
+      } else {
+        // Album was not saved, so ADD it (but only if not already there)
+        if (!savedAlbums.includes(albumId.toString())) {
+          updatedAlbums = [...savedAlbums, albumId.toString()];
+          console.log("Adding album to saved list");
+        } else {
+          updatedAlbums = savedAlbums; // Already in list, no change needed
+          console.log("Album already in saved list, no change needed");
+        }
       }
 
       console.log("Current saved albums:", savedAlbums);
@@ -90,20 +88,20 @@ export default function SaveButton({ albumId, isSaved, userId }: SaveButtonProps
 
       if (updateError) {
         console.error("Error updating saved albums:", updateError);
-        // Revert optimistic update on error
-        setCurrentSavedState(previousState);
+        setCurrentSavedState(wasAlreadySaved); // Revert to original state
         return;
       }
 
-      console.log(currentSavedState ? "Album saved successfully" : "Album unsaved successfully");
+      console.log(wasAlreadySaved ? "Album unsaved successfully" : "Album saved successfully");
       
-      // Refresh the page data without full reload - this won't affect the audio player
-      router.refresh();
+      // Call the onToggle callback to update parent component
+      if (onToggle) {
+        onToggle(newSavedState);
+      }
 
     } catch (error) {
       console.error("Error toggling album save state:", error);
-      // Revert optimistic update on error
-      setCurrentSavedState(previousState);
+      setCurrentSavedState(wasAlreadySaved); // Revert to original state
     } finally {
       setIsLoading(false);
     }

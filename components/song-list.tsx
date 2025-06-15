@@ -14,10 +14,18 @@ export function SongList({ songs }: { songs: Song[] }) {
         if (currentTrack?.id === song.id) {
             togglePlayPause();
         } else {
-            loadTracks(songs); // Load all songs in the list
-            playTrack(index); // Play the clicked song by its index in the new list
+            // Create new track order: selected track first, then tracks after it, then tracks before it
+            const selectedTrack = songs[index];
+            const tracksAfterSelected = songs.slice(index + 1); // All tracks after the selected one
+            const tracksBeforeSelected = songs.slice(0, index); // All tracks before the selected one
+            
+            // Combine: selected track + tracks after + tracks before
+            const newTracks = [selectedTrack, ...tracksAfterSelected, ...tracksBeforeSelected];
+            
+            // Load the new tracks into the audio context
+            loadTracks(newTracks);
+            playTrack(0); // Play the first track (which is the selected one)
         }
-        
     };
 
     return (
