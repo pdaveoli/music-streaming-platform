@@ -4,16 +4,18 @@ export interface Song {
     id: string;
     name: string;
     artist: string;
-    url: string;
-    duration: number;
-    albumId: string;
     coverArt: string;
-    lyrics?: string;
+    duration: string; // Duration metadata text
+    genre: string; // Genre metadata text
+    url: string; // URL to the song file
+    lyricsUrl?: string; // Optional URL to the lyrics file
+    metadata: {} // Additional metadata as an object
 }
 
 export interface AlbumMetadata {
-    releaseDate: string;
-    description: string;
+    releaseDate: string; // Release date of the album
+    label: string; // Record label of the album
+    description: string; // Description of the album
 }
 
 export interface Album {
@@ -21,11 +23,11 @@ export interface Album {
     name: string;
     artist: string;
     coverArt: string;
-    songIds: string[];
-    genre: string;
-    metadata: AlbumMetadata;
+    genre: string; // Genre of the album
+    songIds: string[]; // Array of song IDs in the album
+    metadata: AlbumMetadata; // Additional metadata as an object
 }
-
+s
 export async function getAlbumById(id: string): Promise<Album | null> {
     const supabase = createClient();
     const { data, error } = await supabase
