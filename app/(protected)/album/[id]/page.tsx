@@ -25,8 +25,8 @@ export default function AlbumPage(props: PageProps) {
   useEffect(() => {
     const loadData = async () => {
       try {
-        // props.params is no longer a promise in client components
-        const { id } = props.params;
+        
+        const { id } = await props.params;
 
         if (!id) {
           window.location.href = "/home";
