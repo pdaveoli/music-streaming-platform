@@ -27,7 +27,7 @@ export interface Album {
     songIds: string[]; // Array of song IDs in the album
     metadata: AlbumMetadata; // Additional metadata as an object
 }
-s
+
 export async function getAlbumById(id: string): Promise<Album | null> {
     const supabase = createClient();
     const { data, error } = await supabase
