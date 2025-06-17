@@ -4,6 +4,7 @@ import PersistentAudioPlayerUI from "@/components/AudioPlayerUI"; // Your player
 import Footer from "@/components/footer"; // Your footer component
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 import AppSidebar from "@/components/sidebar"; // Import the Sidebar component
+import { Toaster } from "@/components/ui/sonner"
 
 
 export default function ProtectedLayout({
@@ -16,6 +17,7 @@ export default function ProtectedLayout({
   return (
     <div className="min-h-screen">
         <AudioProvider>
+            <Toaster />
             <AppSidebar />
             <main 
             className={`pt-[${playerHeight}] md:pl-64 min-h-[calc(100vh_-_${playerHeight})]`}

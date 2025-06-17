@@ -21,6 +21,10 @@ interface AudioContextType {
     loadTracks: (newTracks: Song[]) => void;
     toggleRepeat: () => void;
     toggleShuffle: () => void;
+    changeShuffle: (value: boolean) => void;
+    addToQueue: (track: Song, next: boolean) => void;
+    removeFromQueue: (track: Song) => void;
+    clearQueue: () => void;
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -36,16 +40,36 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
     const [shuffle, setShuffle] = useState<boolean>(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     const originalTracks = useRef<Song[]>([]); // Store original tracks instead of indices
+    const queuedTracks = useRef<Song[]>([]); // Keep track of manually queued songs
 
     const loadTracks = (newTracks: Song[]) => {
+
+        if (!Array.isArray(newTracks)) {
+            console.error("loadTracks expects an array of tracks");
+            return;
+        }
+        if (newTracks == null || newTracks.length === 0) {
+            console.warn("loadTracks called with empty or null tracks array");
+            setTracks([]);
+            setCurrentTrackIndex(null);
+            setCurrentTime(0);
+            setProgress(0);
+            setDuration(0);
+            if (audioRef.current) {
+                audioRef.current.src = "";
+            }
+            return;
+        }
+
         const wasPlaying = isPlaying;
         const oldTrackId = currentTrackIndex !== null && tracks[currentTrackIndex] ? tracks[currentTrackIndex].id : null;
 
         setIsPlaying(false); // Pause while loading new tracks
         setTracks(newTracks);
         
-        // Store original order when loading new tracks
+        // Store original order when loading new tracks and reset queue
         originalTracks.current = [...newTracks];
+        queuedTracks.current = []; // Clear queue when loading new tracks
 
         if (newTracks.length > 0) {
             // Try to find the previously playing track in the new list
@@ -108,45 +132,81 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
         });
     };
 
-    const toggleShuffle = () => {
+    const changeShuffle = (value: boolean) => {
         setShuffle(prev => {
-            const newShuffle = !prev;
+            const newShuffleState = value;
+            const currentTrack = currentTrackIndex !== null ? tracks[currentTrackIndex] : null;
             
-            if (newShuffle) {
-                // When enabling shuffle
-                if (currentTrackIndex !== null && tracks[currentTrackIndex]) {
-                    const currentTrack = tracks[currentTrackIndex];
-                    
-                    // Create a copy of tracks without the current track
-                    const otherTracks = tracks.filter((_, index) => index !== currentTrackIndex);
-                    
-                    // Shuffle the other tracks
-                    const shuffledOtherTracks = [...otherTracks].sort(() => Math.random() - 0.5);
-                    
-                    // Put current track first, followed by shuffled other tracks
-                    const newTrackOrder = [currentTrack, ...shuffledOtherTracks];
-                    
-                    setTracks(newTrackOrder);
-                    setCurrentTrackIndex(0); // Current track is now at index 0
+            if (newShuffleState) {
+                // Turning shuffle ON: combine original tracks with queued tracks, then shuffle
+                const allTracks = [...originalTracks.current, ...queuedTracks.current];
+                const shuffledTracks = [...allTracks];
+                
+                // Fisher-Yates shuffle
+                for (let i = shuffledTracks.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledTracks[i], shuffledTracks[j]] = [shuffledTracks[j], shuffledTracks[i]];
+                }
+                
+                setTracks(shuffledTracks);
+                
+                // Find the current track in the shuffled array
+                if (currentTrack) {
+                    const newIndex = shuffledTracks.findIndex(track => track.id === currentTrack.id);
+                    setCurrentTrackIndex(newIndex !== -1 ? newIndex : 0);
                 }
             } else {
-                // When disabling shuffle, restore original order
-                if (originalTracks.current.length > 0) {
-                    const currentTrackId = currentTrackIndex !== null && tracks[currentTrackIndex] ? tracks[currentTrackIndex].id : null;
-                    
-                    setTracks([...originalTracks.current]);
-                    
-                    // Find the current track in the original order
-                    if (currentTrackId) {
-                        const newIndex = originalTracks.current.findIndex(track => track.id === currentTrackId);
-                        setCurrentTrackIndex(newIndex !== -1 ? newIndex : 0);
-                    } else {
-                        setCurrentTrackIndex(0);
-                    }
+                // Turning shuffle OFF: restore original order but keep queued tracks
+                const allTracks = [...originalTracks.current, ...queuedTracks.current];
+                setTracks(allTracks);
+                
+                // Find the current track in the unshuffled array
+                if (currentTrack) {
+                    const newIndex = allTracks.findIndex(track => track.id === currentTrack.id);
+                    setCurrentTrackIndex(newIndex !== -1 ? newIndex : 0);
                 }
             }
             
-            return newShuffle;
+            return newShuffleState;
+        });
+    }
+
+    const toggleShuffle = () => {
+        setShuffle(prev => {
+            const newShuffleState = !prev;
+            const currentTrack = currentTrackIndex !== null ? tracks[currentTrackIndex] : null;
+            
+            if (newShuffleState) {
+                // Turning shuffle ON: combine original tracks with queued tracks, then shuffle
+                const allTracks = [...originalTracks.current, ...queuedTracks.current];
+                const shuffledTracks = [...allTracks];
+                
+                // Fisher-Yates shuffle
+                for (let i = shuffledTracks.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [shuffledTracks[i], shuffledTracks[j]] = [shuffledTracks[j], shuffledTracks[i]];
+                }
+                
+                setTracks(shuffledTracks);
+                
+                // Find the current track in the shuffled array
+                if (currentTrack) {
+                    const newIndex = shuffledTracks.findIndex(track => track.id === currentTrack.id);
+                    setCurrentTrackIndex(newIndex !== -1 ? newIndex : 0);
+                }
+            } else {
+                // Turning shuffle OFF: restore original order but keep queued tracks
+                const allTracks = [...originalTracks.current, ...queuedTracks.current];
+                setTracks(allTracks);
+                
+                // Find the current track in the unshuffled array
+                if (currentTrack) {
+                    const newIndex = allTracks.findIndex(track => track.id === currentTrack.id);
+                    setCurrentTrackIndex(newIndex !== -1 ? newIndex : 0);
+                }
+            }
+            
+            return newShuffleState;
         });
     };
 
@@ -231,6 +291,52 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
             audioRef.current.currentTime = time;
             setCurrentTime(time);
         }
+    };
+
+    const addToQueue = (track: Song, next: boolean) => {
+        // Add to our queued tracks reference
+        queuedTracks.current.push(track);
+        
+        setTracks(prevTracks => {
+            if (next && currentTrackIndex !== null) {
+                // Insert after current track
+                const newTracks = [...prevTracks];
+                newTracks.splice(currentTrackIndex + 1, 0, track);
+                return newTracks;
+            } else {
+                // Add to end
+                return [...prevTracks, track];
+            }
+        });
+        
+        // Update current track index if we inserted before it
+        if (next && currentTrackIndex !== null) {
+            // No need to update currentTrackIndex since we inserted after current track
+        }
+    };
+
+    const removeFromQueue = (track: Song) => {
+        // Remove from queued tracks reference
+        queuedTracks.current = queuedTracks.current.filter(t => t.id !== track.id);
+        
+        setTracks(prevTracks => {
+            const trackIndex = prevTracks.findIndex(t => t.id === track.id);
+            if (trackIndex === -1) return prevTracks;
+            
+            const newTracks = prevTracks.filter(t => t.id !== track.id);
+            
+            // Adjust current track index if necessary
+            if (currentTrackIndex !== null && trackIndex <= currentTrackIndex) {
+                setCurrentTrackIndex(prev => prev! - 1);
+            }
+            
+            return newTracks;
+        });
+    };
+
+    const clearQueue = () => {
+        // Clear the entire queue
+        setTracks(tracks[currentTrackIndex] !== null ? [tracks[currentTrackIndex]] : []); // Keep current track if exists
     };
 
     // Effect for handling track changes (src, load, play/pause)
@@ -341,7 +447,11 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
             seek, 
             loadTracks,
             toggleRepeat,
-            toggleShuffle
+            toggleShuffle,
+            addToQueue,
+            removeFromQueue,
+            clearQueue,
+            changeShuffle
         }}>
             {children}
             {/* The actual audio element is hidden but controlled by the context */}
