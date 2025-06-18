@@ -336,7 +336,11 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
 
     const clearQueue = () => {
         // Clear the entire queue
-        setTracks(tracks[currentTrackIndex] !== null ? [tracks[currentTrackIndex]] : []); // Keep current track if exists
+        if (currentTrackIndex === null) {
+            setTracks([]); // If no track is currently playing, just clear tracks
+        } else {
+            setTracks(tracks[currentTrackIndex] !== null ? [tracks[currentTrackIndex]] : []); // Keep current track if exists
+        }
     };
 
     // Effect for handling track changes (src, load, play/pause)
