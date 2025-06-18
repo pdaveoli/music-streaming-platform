@@ -235,8 +235,8 @@ export default function PersistentAudioPlayerUI() {
     queue = tracks.slice(currentTrackIndex + 1);
   }
   const toggleQueue = () => {
-    if (!currentTrackIndex) return; // No current track, no queue to show
-    queue = tracks.slice(currentTrackIndex + 1);
+    if (currentTrackIndex)
+      queue = tracks.slice(currentTrackIndex + 1);
     // Toggle the queue visibility
     setShowQueue((prev) => !prev);
   };
