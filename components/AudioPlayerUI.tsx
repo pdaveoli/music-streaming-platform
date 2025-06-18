@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // If you use Avatar
-
+import type { Song } from "@/app/client-actions"
 // Helper functions (assuming these are still defined or imported correctly)
 // If these are defined in another file, ensure they are imported.
 // For this example, I'll assume they are available in this scope or imported.
@@ -229,7 +229,7 @@ export default function PersistentAudioPlayerUI() {
     }
   }, [lyricsCurrentIndex, showLyrics]); // Trigger on index change or when lyrics panel becomes visible
 
-  let queue = [];
+  let queue : Song[] = [];
   if (currentTrackIndex !== null) {
     // make the queue variable the tracks split from the currentTrackIndex
     queue = tracks.slice(currentTrackIndex + 1);
