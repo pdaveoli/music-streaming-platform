@@ -229,10 +229,13 @@ export default function PersistentAudioPlayerUI() {
     }
   }, [lyricsCurrentIndex, showLyrics]); // Trigger on index change or when lyrics panel becomes visible
 
-  // make the queue variable the tracks split from the currentTrackIndex
-  let queue = tracks.slice(currentTrackIndex + 1);
-
+  let queue = [];
+  if (currentTrackIndex !== null) {
+    // make the queue variable the tracks split from the currentTrackIndex
+    queue = tracks.slice(currentTrackIndex + 1);
+  }
   const toggleQueue = () => {
+    if (!currentTrackIndex) return; // No current track, no queue to show
     queue = tracks.slice(currentTrackIndex + 1);
     // Toggle the queue visibility
     setShowQueue((prev) => !prev);
