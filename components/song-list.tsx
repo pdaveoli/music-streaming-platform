@@ -21,7 +21,7 @@ export function SongList({ songs }: { songs: Song[] }) {
     togglePlayPause,
     isPlaying,
     addToQueue,
-    toggleShuffle,
+    changeShuffle,
     clearQueue,
   } = useAudio(); // Call useAudio at the top level
 
@@ -56,9 +56,9 @@ export function SongList({ songs }: { songs: Song[] }) {
         return;
         }
     loadTracks([]);
-    toggleShuffle(false);
+    changeShuffle(false);
     loadTracks(songs);
-    toggleShuffle(true);
+    changeShuffle(true);
     playTrack(1);
 }
 
