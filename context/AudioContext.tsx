@@ -332,6 +332,24 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
             
             return newTracks;
         });
+
+        // remove from original tracks if it exists there
+        originalTracks.current = originalTracks.current.filter(t => t.id !== track.id);
+        // If the removed track was the current track, reset currentTrackIndex
+        if (currentTrackIndex !== null && tracks[currentTrackIndex]?.id === track.id)
+            setCurrentTrackIndex(null);
+        // If the removed track was the only track, reset everything
+        if (tracks.length === 1 && currentTrackIndex !== null && tracks[currentTrackIndex]?.id === track.id) {
+            setTracks([]);
+            setCurrentTrackIndex(null);
+            setCurrentTime(0);
+            setProgress(0);
+            setDuration(0);
+            if (audioRef.current) {
+                audioRef.current.src = "";
+                audioRef.current.pause();
+            }
+        }
     };
 
     const clearQueue = () => {

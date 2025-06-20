@@ -29,7 +29,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // If you use Avatar
-import type { Song } from "@/app/client-actions"
+import type { Song } from "@/app/client-actions";
+// context menu components
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { toast } from "sonner"
 // Helper functions (assuming these are still defined or imported correctly)
 // If these are defined in another file, ensure they are imported.
 // For this example, I'll assume they are available in this scope or imported.
@@ -87,6 +95,7 @@ export default function PersistentAudioPlayerUI() {
   const {
     tracks,
     currentTrackIndex,
+    loadTracks,
     isPlaying,
     progress,
     currentTime,
@@ -95,11 +104,13 @@ export default function PersistentAudioPlayerUI() {
     togglePlayPause,
     playNext,
     playPrev,
+    playTrack,
     seek,
     toggleRepeat,
     toggleShuffle,
     shuffle,
     repeat,
+    removeFromQueue,
     // loadTracks, // Assuming loadTracks is used elsewhere or not directly in UI
   } = useAudio();
 
@@ -229,17 +240,55 @@ export default function PersistentAudioPlayerUI() {
     }
   }, [lyricsCurrentIndex, showLyrics]); // Trigger on index change or when lyrics panel becomes visible
 
-  let queue : Song[] = [];
+  let queue: Song[] = [];
   if (currentTrackIndex !== null) {
     // make the queue variable the tracks split from the currentTrackIndex
     queue = tracks.slice(currentTrackIndex + 1);
   }
   const toggleQueue = () => {
-    if (currentTrackIndex)
-      queue = tracks.slice(currentTrackIndex + 1);
+    if (currentTrackIndex) queue = tracks.slice(currentTrackIndex + 1);
     // Toggle the queue visibility
     setShowQueue((prev) => !prev);
   };
+
+  const handlePlayClick = (song: Song) => {
+    // Find song in queue
+    const songIndex = tracks.findIndex((track) => track.id === song.id);
+    if (songIndex !== -1) {
+      // If song is already in queue, play it
+      if (currentTrackIndex === songIndex) {
+        togglePlayPause(); // Toggle play/pause if it's the current track
+      } else {
+        // Load the new track order: selected track first, then tracks after it, then tracks before it
+        const selectedTrack = tracks[songIndex];
+        const tracksAfterSelected = tracks.slice(songIndex + 1); // All tracks after the selected one
+        const tracksBeforeSelected = tracks.slice(0, songIndex); // All tracks before the selected one
+
+        // Combine: selected track + tracks after + tracks before
+        const newTracks = [
+          selectedTrack,
+          ...tracksAfterSelected,
+          ...tracksBeforeSelected,
+        ];
+
+        // set tracks
+        loadTracks(newTracks);
+        playTrack(0);
+      }
+    }
+  };
+
+  const handleRemoveFromQueue = (song: Song) => {
+    // Check song is in queue
+    const songIndex = queue.findIndex((track) => track.id === song.id);
+    if (songIndex !== -1) {
+      // Remove the song from the queue
+      removeFromQueue(song);
+      // Optionally, you can show a toast or notification here to confirm the action
+      toast("Removed from queue");
+    }
+  };
+  
 
   if (!isMounted) {
     // Simplified loading skeleton for the player bar
@@ -281,8 +330,6 @@ export default function PersistentAudioPlayerUI() {
     <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
       <div className="w-full flex items-center justify-between h-[60px]">
         <div className="flex items-center gap-3 justify-center flex-grow min-w-0 px-4">
-          {" "}
-          {/* Added px-4 for some breathing room */}
           <Image
             src={currentTrack.coverArt || "/music.svg"}
             alt={currentTrack.name || "Album Cover"}
@@ -497,28 +544,45 @@ export default function PersistentAudioPlayerUI() {
                 </div>
                 <div className="flex-grow p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto custom-scrollbar">
                   {queue.map((track, index) => (
-                    <div key={index} className="flex items-center gap-3">
-                      <Image
-                        src={track.coverArt || "/music.svg"}
-                        alt={track.name || "Album Cover"}
-                        width={40}
-                        height={40}
-                        className="rounded-md object-cover flex-shrink-0"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <h5
-                          className="font-semibold text-sm truncate"
-                          title={track.name}
-                        >
-                          {track.name}
-                        </h5>
-                        <p
-                          className="text-xs text-muted-foreground truncate"
-                          title={track.artist}
-                        >
-                          {track.artist}
-                        </p>
-                      </div>
+                    <div key={index}>
+                      <ContextMenu>
+                        <ContextMenuTrigger className="w-full flex items-center gap-3">
+                          <Image
+                            src={track.coverArt || "/music.svg"}
+                            alt={track.name || "Album Cover"}
+                            width={40}
+                            height={40}
+                            className="rounded-md object-cover flex-shrink-0"
+                          />
+                          <div className="flex-1 min-w-0">
+                            <h5
+                              className="font-semibold text-sm truncate"
+                              title={track.name}
+                            >
+                              {track.name}
+                            </h5>
+                            <p
+                              className="text-xs text-muted-foreground truncate"
+                              title={track.artist}
+                            >
+                              {track.artist}
+                            </p>
+                          </div>
+                        </ContextMenuTrigger>
+                        <ContextMenuContent className="w-48">
+                          <ContextMenuItem
+                            onClick={() => handlePlayClick(track)}
+                          >
+                            Play Now
+                          </ContextMenuItem>
+                          <ContextMenuItem
+                            onClick={() => handleRemoveFromQueue(track)}
+                          >
+                            Remove from Queue
+                          </ContextMenuItem>
+                          
+                        </ContextMenuContent>
+                      </ContextMenu>
                     </div>
                   ))}
                   {tracks.length === 0 && (
