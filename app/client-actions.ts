@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
+import { redirect } from "next/navigation";
 
 export interface Song {
     id: string;
@@ -36,6 +37,16 @@ export interface Playlist {
     coverArt: string;
     description: string;
     createdAt: string; // ISO date string
+}
+
+export interface Artist {
+    id: string;
+    name: string;
+    description: string;
+    pictureUrl: string; // URL to the artist's picture
+    genre: string; // Genre of the artist
+    started: string,
+    from: string
 }
 export async function getAlbumById(id: string): Promise<Album | null> {
     const supabase = createClient();
@@ -113,4 +124,129 @@ export async function getSavedSongs(userId: string): Promise<Song[]> {
         }
     }
     return savedSongs;
+}
+
+// Get users saved playlists
+export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("users")
+        .select("playlists")
+        .eq("id", userId);
+    if (error) {
+        console.error("Error fetching saved playlists:", error);
+        return [];
+    }
+    if (!data || data.length === 0) {
+        console.error("No user found with ID:", userId);
+        return [];
+    }
+    // Handle null values by returning empty array if playlists is null
+    return data[0]?.playlists || [];
+}
+
+export async function createPlaylist(formData: FormData) {
+
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const userId = user?.id;
+
+  if (!userId) {
+    return { error: "User not authenticated." };
+  }
+
+  const name = formData.get("name") as string;
+  const description = formData.get("description") as string;
+
+  if (!name) {
+    return { error: "Playlist name is required." };
+  }
+
+  const { data, error } = await supabase
+    .from("playlists")
+    .insert({
+      name,
+      description,
+      userId,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    console.error("Error creating playlist:", error);
+    return { error: "Failed to create playlist." };
+  }
+
+  // get saved playlists for the user
+  const savedPlaylists = await getSavedPlaylists(userId);
+    // add the new playlist to the saved playlists
+    savedPlaylists.push(data.id);
+    // Update the user's saved playlists
+    const { error: updateError } = await supabase
+    .from("users")
+    .update({ playlists: savedPlaylists })
+    .eq("id", userId);
+  if (updateError) {
+    console.error("Error updating user's playlists:", updateError);
+    return { error: "Failed to update user's playlists." };
+  }
+
+  redirect(`/playlists/${data.id}`);
+}
+
+export async function getArtists() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("artists")
+        .select("*");
+    if (error) {
+        console.error("Error fetching artists:", error);
+        return [];
+    }
+    return data;
+}
+
+export async function getSongs() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("songs")
+        .select("*");
+    
+    if (error) {
+        console.error("Error fetching songs:", error);
+        return [];
+    }
+    
+    return data;
+}
+
+export async function getAlbums() {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("albums")
+        .select("*");
+    
+    if (error) {
+        console.error("Error fetching albums:", error);
+        return [];
+    }
+    
+    return data;
+}
+
+
+export default async function SearchPageData() : Promise<{
+  albums: Album[];
+  songs: Song[];
+  artists: Artist[];
+}> {
+
+    
+    let albums = await getAlbums();
+    let songs = await getSongs();
+    let artists = await getArtists();
+
+  return Promise.resolve({ albums: albums ? albums : [], songs: songs ? songs : [], artists: artists ? artists : [] });
 }

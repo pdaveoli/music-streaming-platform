@@ -11,7 +11,7 @@ import {
 } from "@/app/client-actions";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Play } from "lucide-react";
+import { Ellipsis, Play, Shuffle } from "lucide-react";
 import { toast } from "sonner";
 import { useAudio } from "@/context/AudioContext";
 import {
@@ -20,6 +20,26 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import { ExpandableDescription } from "@/components/ExpandableDescription";
 
 export default function PlaylistPage(props: PageProps) {
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
@@ -29,6 +49,10 @@ export default function PlaylistPage(props: PageProps) {
   const [showAddSong, setShowAddSong] = useState(false);
   const [showEditPlaylist, setShowEditPlaylist] = useState(false);
   const [userSavedSongs, setUserSavedSongs] = useState<Song[]>([]);
+  const [songToRemove, setSongToRemove] = useState<Song | null>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<boolean>(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filteredSongs, setFilteredSongs] = useState<Song[]>([]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -88,10 +112,6 @@ export default function PlaylistPage(props: PageProps) {
     };
     loadData();
   }, [props.params]);
-
-  const removeSong = async (songId: string) => {
-    console.log("Removing song with ID:", songId);
-  };
 
   const {
     loadTracks,
@@ -161,10 +181,10 @@ export default function PlaylistPage(props: PageProps) {
         .eq("id", playlist.id);
       if (error) {
         console.error("Error adding song to playlist:", error);
-        alert("Failed to add song to playlist. Please try again.");
+        toast.error("Failed to add song to playlist. Please try again.");
       } else {
         console.log("Song added successfully:", data);
-        alert("Song added successfully!");
+        toast.success("Song added successfully!");
         // Allow the user to add more songs without closing the modal
         setShowAddSong(true); // Keep the modal open
         // Optionally, you can reload the playlist data to reflect changes
@@ -177,8 +197,39 @@ export default function PlaylistPage(props: PageProps) {
         // Update the songs state to include the newly added song
         setSongs((prevSongs) => [...prevSongs, song]);
       }
-    } else {
-      alert("This song is already in the playlist.");
+    } else if (playlist && playlist.songs && playlist.songs.includes(song.id)) {
+      // If the song is already in the playlist, show a warning
+      console.warn("This song is already in the playlist.");
+      toast.warning("This song is already in the playlist.");
+    } else if (playlist) {
+      // Add the song anyway, the playlist might not have songs yet
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from("playlists")
+        .update({
+          songs: [song.id],
+        })
+        .eq("id", playlist.id);
+
+        if (error) {
+        console.error("Error adding song to playlist:", error);
+        toast.error("Failed to add song to playlist. Please try again.");
+      } else {
+        console.log("Song added successfully:", data);
+        toast.success("Song added successfully!");
+        // Allow the user to add more songs without closing the modal
+        setShowAddSong(true); // Keep the modal open
+        // Optionally, you can reload the playlist data to reflect changes
+        const updatedPlaylist = await supabase
+          .from("playlists")
+          .select("*")
+          .eq("id", playlist.id)
+          .single();
+        setPlaylist(updatedPlaylist.data);
+        // Update the songs state to include the newly added song
+        setSongs((prevSongs) => [...prevSongs, song]);
+      }
+      
     }
   };
 
@@ -190,21 +241,25 @@ export default function PlaylistPage(props: PageProps) {
     let updatedDescription = formData.get("description") as string;
     if (!updatedDescription)
       updatedDescription = playlist?.description || "No description available"; // Fallback to current description if empty
-
+    let updatedCoverArt = formData.get("coverArt") as string;
+    if (!updatedCoverArt) {
+      updatedCoverArt = playlist?.coverArt || "/default-playlist-image.png"; // Fallback to current cover art if empty
+    }
     const supabase = createClient();
     const { data, error } = await supabase
       .from("playlists")
       .update({
         name: updatedName,
         description: updatedDescription,
+        coverArt: updatedCoverArt,
       })
       .eq("id", playlist?.id);
     if (error) {
       console.error("Error updating playlist:", error);
-      alert("Failed to update playlist. Please try again.");
+      toast.error("Failed to update playlist. Please try again.");
     } else {
       console.log("Playlist updated successfully:", data);
-      alert("Playlist updated successfully!");
+      toast.success("Playlist updated successfully!");
       setShowEditPlaylist(false); // Hide the edit form after saving
       // Optionally, you can reload the playlist data to reflect changes
       const updatedPlaylist = await supabase
@@ -213,6 +268,90 @@ export default function PlaylistPage(props: PageProps) {
         .eq("id", playlist?.id)
         .single();
       setPlaylist(updatedPlaylist.data);
+    }
+  };
+
+  const removeSong = async (songId: string) => {
+    console.log("Removing song with ID:", songId);
+    if (!playlist || !playlist.songs) {
+      console.error("Playlist or songs not found");
+      return;
+    }
+    // if songId is not in playlist.songs, return
+    if (!playlist.songs.includes(songId)) {
+      console.warn("Song ID not found in playlist");
+      return;
+    }
+    const updatedSongs = playlist.songs.filter((id) => id !== songId);
+    const supabase = createClient();
+    const { data, error } = await supabase
+      .from("playlists")
+      .update({ songs: updatedSongs })
+      .eq("id", playlist.id);
+    if (error) {
+      console.error("Error removing song from playlist:", error);
+      toast.error("Failed to remove song from playlist. Please try again.");
+    } else {
+      console.log("Song removed successfully:", data);
+      toast.success("Song removed successfully!");
+      // Update the local state to reflect the change
+      const updatedPlaylist = await supabase
+        .from("playlists")
+        .select("*")
+        .eq("id", playlist?.id)
+        .single();
+      setPlaylist(updatedPlaylist.data);
+      // Optionally, remove the song from the songs state
+      setSongs((prevSongs) => prevSongs.filter((song) => song.id !== songId));
+    }
+  };
+
+  const deletePlaylist = async () => {
+    if (!playlist) {
+      toast.error("Playlist not found.");
+      return;
+    }
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("playlists")
+      .delete()
+      .eq("id", playlist.id);
+
+    if (error) {
+      toast.error("Failed to delete playlist. Please try again.");
+      console.error("Error deleting playlist:", error);
+    } else {
+      toast.success(`Playlist "${playlist.name}" deleted successfully.`);
+      // Redirect user after deletion
+      window.location.href = "/library";
+    }
+  };
+
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const query = event.target.value.toLowerCase();
+    setSearchQuery(query);
+    if (query) {
+      const filtered = userSavedSongs.filter((song) =>
+        song.name.toLowerCase().includes(query)
+      );
+      setFilteredSongs(filtered);
+    } else {
+      setFilteredSongs(userSavedSongs);
+    }
+  };
+
+  const addSongMenu = () => {
+    // toggle the add song modal
+    setShowAddSong(!showAddSong);
+    if (!showAddSong) {
+      // If opening the modal, reset search and filtered songs
+      setSearchQuery("");
+      setFilteredSongs(userSavedSongs);
+    }
+    if (showAddSong) {
+      handleSearch({
+        target: { value: "" },
+      } as React.ChangeEvent<HTMLInputElement>);
     }
   };
 
@@ -233,7 +372,7 @@ export default function PlaylistPage(props: PageProps) {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center p-4 md:p-8 mx-auto w-full h-screen">
+    <div className="flex flex-col items-center justify-center p-4 md:p-8 mx-auto w-full min-h-screen">
       <Image
         src={playlist.coverArt || "/default-playlist-image.png"}
         alt={playlist.name}
@@ -242,11 +381,12 @@ export default function PlaylistPage(props: PageProps) {
         className="rounded-lg mb-4"
       />
       <h1 className="text-4xl font-bold mb-4">{playlist.name}</h1>
-      <p className="text-lg text-gray-600 mb-4">
-        {playlist.description
-          ? playlist.description
-          : "No description available."}
-      </p>
+      <div className="max-w-2xl mb-4">
+        <ExpandableDescription
+          text={playlist.description || "No description"}
+          truncateLength={300}
+        />
+      </div>
       <div className="flex gap-4">
         <Button
           onClick={() => setShowEditPlaylist(!showEditPlaylist)}
@@ -267,15 +407,23 @@ export default function PlaylistPage(props: PageProps) {
               name="name"
               required
             />
+            <input
+             type="url"
+              defaultValue={playlist.coverArt}
+              placeholder="Cover Art URL"
+              className="border p-2 rounded mb-2 w-full"
+              name="coverArt"
+            />
             <textarea
               defaultValue={playlist.description}
               placeholder="Description goes here"
               className="border p-2 rounded mb-2 w-full"
               name="description"
             />
+            
             <Button
               type="button"
-              onClick={() => setShowAddSong(!showAddSong)}
+              onClick={addSongMenu}
               className="bg-blue-500 text-white px-4 py-2 rounded"
             >
               Add Song
@@ -289,74 +437,178 @@ export default function PlaylistPage(props: PageProps) {
           </form>
         </div>
       )}
-      <div className="mt-6 w-full max-w-2xl">
+      <div className="mt-6 w-full max-w-screen">
         <h2 className="text-2xl font-semibold mb-4">Songs in Playlist</h2>
         {songs && songs.length > 0 ? (
-          <ul className="space-y-2">
-            {songs.map((song, index) => (
-              <div
-                key={song.id}
-                // Use flex and justify-between to push the button to the right
-                className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between"
+          <>
+            <div className="flex justify-end items-center mb-4 gap-1">
+              <Button
+                className="bg-blue-500 hover:bg-blue-600 text-white rounded-full mb-4 "
+                onClick={handleShuffleAll}
               >
-                <ContextMenu>
-                  <ContextMenuTrigger className="w-full flex items-center">
-                    {/* Left side: Image and Song Info */}
-                    {/* Added flex-1 here to make this section take available space */}
-                    <div className="flex items-center overflow-hidden flex-1">
-                      <img
-                        src={song.coverArt || "/placeholder-song.png"}
-                        alt={song.name}
-                        className="w-16 h-16 object-cover rounded-lg mr-4 flex-shrink-0"
-                      />
-                      <div className="overflow-hidden">
-                        <h2 className="text-xl font-semibold truncate text-white">
-                          {song.name}
-                        </h2>
-                        <div className="flex items-center text-sm text-gray-300 space-x-2">
-                          <span>{song.artist}</span>
-                          <span>&bull;</span>
-                          <span>{song.duration}</span>
+                <Shuffle className="w-5 h-5" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button className="bg-gray-500 hover:bg-gray-600 text-white rounded-full mb-4 ">
+                    <Ellipsis className="w-5 h-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent className="w-48">
+                  <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={addSongMenu}>
+                    Add Songs
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleShuffleAll}>
+                    Shuffle All
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>Add to Playlist</DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-red-500 focus:text-red-500 focus:bg-red-100 dark:focus:bg-red-900/40"
+                    onClick={() => setShowDeleteConfirmation(true)}
+                  >
+                    Delete Playlist
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+            <ul className="space-y-2">
+              {songs.map((song, index) => (
+                <div
+                  key={song.id}
+                  // Use flex and justify-between to push the button to the right
+                  className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between"
+                >
+                  <ContextMenu>
+                    <ContextMenuTrigger className="w-full flex items-center">
+                      {/* Left side: Image and Song Info */}
+                      {/* Added flex-1 here to make this section take available space */}
+                      <div className="flex items-center overflow-hidden flex-1">
+                        <img
+                          src={song.coverArt || "/placeholder-song.png"}
+                          alt={song.name}
+                          className="w-16 h-16 object-cover rounded-lg mr-4 flex-shrink-0"
+                        />
+                        <div className="overflow-hidden">
+                          <h2 className="text-xl font-semibold truncate text-white">
+                            {song.name}
+                          </h2>
+                          <div className="flex items-center text-sm text-gray-300 space-x-2">
+                            <span>{song.artist}</span>
+                            <span>&bull;</span>
+                            <span>{song.duration}</span>
+                          </div>
                         </div>
                       </div>
-                    </div>
 
-                    {/* Right side: Play Button */}
-                    {/* Removed right-0, pl-4 provides spacing */}
-                    <div className="pl-4">
-                      <Button
+                      {/* Right side: Play Button */}
+                      {/* Removed right-0, pl-4 provides spacing */}
+                      <div className="pl-4">
+                        <Button
+                          onClick={() => handlePlayClick(song, index)}
+                          className="bg-green-500 hover:bg-green-600 rounded-full p-3"
+                        >
+                          <Play className="h-5 w-5 text-white" />
+                        </Button>
+                      </div>
+                    </ContextMenuTrigger>
+                    <ContextMenuContent className="w-48">
+                      <ContextMenuItem
                         onClick={() => handlePlayClick(song, index)}
-                        className="bg-green-500 hover:bg-green-600 rounded-full p-3"
                       >
-                        <Play className="h-5 w-5 text-white" />
-                      </Button>
-                    </div>
-                  </ContextMenuTrigger>
-                  <ContextMenuContent className="w-48">
-                    <ContextMenuItem
-                      onClick={() => handlePlayClick(song, index)}
-                    >
-                      Play Now
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      onClick={() => handleAddToQueue(song, true)}
-                    >
-                      Queue Next
-                    </ContextMenuItem>
-                    <ContextMenuItem
-                      onClick={() => handleAddToQueue(song, false)}
-                    >
-                      Queue Last
-                    </ContextMenuItem>
-                  </ContextMenuContent>
-                </ContextMenu>
-              </div>
-            ))}
-          </ul>
+                        Play Now
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={() => handleAddToQueue(song, true)}
+                      >
+                        Queue Next
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        onClick={() => handleAddToQueue(song, false)}
+                      >
+                        Queue Last
+                      </ContextMenuItem>
+                      <ContextMenuItem
+                        className="text-red-500 focus:text-red-500 focus:bg-red-100 dark:focus:bg-red-900/40"
+                        onClick={() => setSongToRemove(song)}
+                      >
+                        Remove from Playlist
+                      </ContextMenuItem>
+                    </ContextMenuContent>
+                  </ContextMenu>
+                </div>
+              ))}
+            </ul>
+          </>
         ) : (
           <p className="text-gray-500">No songs in this playlist.</p>
         )}
       </div>
+
+      <AlertDialog
+        open={!!songToRemove}
+        onOpenChange={(isOpen) => !isOpen && setSongToRemove(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action will permanently remove the song
+              <span className="font-semibold text-white">
+                {" "}
+                {songToRemove?.name}{" "}
+              </span>
+              from this playlist.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setSongToRemove(null)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => {
+                if (songToRemove) {
+                  removeSong(songToRemove.id);
+                }
+                setSongToRemove(null); // Close dialog after action
+              }}
+            >
+              Remove
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={showDeleteConfirmation}
+        onOpenChange={setShowDeleteConfirmation}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Playlist?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the
+              <span className="font-semibold text-white">
+                {" "}
+                {playlist?.name}{" "}
+              </span>
+              playlist.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700"
+              onClick={deletePlaylist}
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       {/* Add Song Modal */}
       {showAddSong && (
@@ -369,29 +621,62 @@ export default function PlaylistPage(props: PageProps) {
               </Button>
             </div>
             <div className="max-h-[60vh] overflow-y-auto">
+              <div className="mb-4">
+                <input
+                  type="text"
+                  placeholder="Search for songs..."
+                  value={searchQuery}
+                  onChange={handleSearch}
+                  className="border p-2 rounded w-full"
+                />
+              </div>
               <ul className="space-y-2">
-                {userSavedSongs && userSavedSongs.length > 0 ? (
-                  userSavedSongs.map((song) => (
+                {userSavedSongs &&
+                userSavedSongs.length > 0 &&
+                filteredSongs &&
+                filteredSongs.length > 0 ? (
+                  filteredSongs.map((song) => (
                     <li
                       key={song.id}
                       className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700"
                     >
+                      
                       <div>
-                        <p className="font-semibold">{song.name}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {song.artist}
-                        </p>
+                        <div className="flex items-center">
+                          <img
+                            src={song.coverArt || "/placeholder-song.png"}
+                            alt={song.name}
+                            className="w-12 h-12 object-cover rounded-lg mr-4"
+                          />
+                          <div>
+                            <p className="font-semibold">{song.name}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                              {song.artist}
+                            </p>
+                          </div>
+                        </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        onClick={() => addToPlaylist(song)}
-                      >
-                        Add
-                      </Button>
+                      {playlist && playlist.songs?.includes(song.id) ? (
+                        <Button
+                          variant="outline"
+                          onClick={() => {
+                            setSongToRemove(song);
+                          }}
+                        >
+                          Remove
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          onClick={() => addToPlaylist(song)}
+                        >
+                          Add
+                        </Button>
+                      )}
                     </li>
                   ))
                 ) : (
-                  <p>You have no saved songs to add.</p>
+                  <p>No Results</p>
                 )}
               </ul>
             </div>

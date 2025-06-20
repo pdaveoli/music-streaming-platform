@@ -20,7 +20,7 @@ export default function ProtectedLayout({
             <Toaster />
             <AppSidebar />
             <main 
-            className={`pt-[${playerHeight}] md:pl-64 min-h-[calc(100vh_-_${playerHeight})]`}
+            className={`pt-[84px] md:pl-64 min-h-[calc(100vh_-_${playerHeight})]`}
             >
                 {children}
                 

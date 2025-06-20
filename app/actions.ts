@@ -1,6 +1,8 @@
 "use server";
 // This script is responsible for handling actions to do with databases
 import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 // Types
 
@@ -35,7 +37,13 @@ export interface Album {
 }
 
 export interface Playlist {
-
+    id: string;
+    name: string;
+    userId: string;
+    songs: string[];
+    coverArt: string;
+    description: string;
+    createdAt: string; // ISO date string
 }
 
 export interface Artist {
@@ -214,3 +222,48 @@ export async function getAlbumById(id: string) {
     
     return data;
 }
+
+export async function getPlaylistById(id: string): Promise<Playlist | null> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("playlists")
+        .select("*")
+        .eq("id", id)
+        .single();
+    
+    if (error) {
+        console.error(`Error fetching playlist with ID ${id}:`, error);
+        return null;
+    }
+    
+    return data;
+}
+
+// Get users saved playlists
+export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("users")
+        .select("playlists, id")
+        .eq("id", userId);
+    if (error) {
+        console.error("Error fetching saved playlists:", error);
+        return [];
+    }
+    if (!data || data.length === 0) {
+        console.error("No user found with ID:", userId);
+        return [];
+    }
+    console.log("getSavedPlaylists: Query result:", data);
+    console.log("getSavedPlaylists: Query error:", error);
+    let playlists : Playlist[] = [];
+    
+    for (const playlistId of data[0].playlists) {
+        const playlist = await getPlaylistById(playlistId);
+        if (playlist) {
+            playlists.push(playlist);
+        }
+    }
+    return playlists || [];    
+}
+

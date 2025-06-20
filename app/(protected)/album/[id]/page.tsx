@@ -135,13 +135,14 @@ export default function AlbumPage(props: PageProps) {
           userId={userId}
           onToggle={handleSaveToggle}
         />
-
-        <ExpandableDescription
-          text={album?.metadata?.description}
-          truncateLength={150}
-        />
+        <div className="max-w-3xl mb-4 mt-4">
+          <ExpandableDescription
+            text={album?.metadata?.description}
+            truncateLength={300}
+          />
+        </div>
       </div>
-      <div>
+      <div className="flex flex-col items-center justify-center p-4 md:p-8 max-w-4xl mx-auto">
         <SongList songs={songs} />
       </div>
     </>
