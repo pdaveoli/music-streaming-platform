@@ -28,6 +28,15 @@ export interface Album {
     metadata: AlbumMetadata; // Additional metadata as an object
 }
 
+export interface Playlist {
+    id: string;
+    name: string;
+    userId: string;
+    songs: string[];
+    coverArt: string;
+    description: string;
+    createdAt: string; // ISO date string
+}
 export async function getAlbumById(id: string): Promise<Album | null> {
     const supabase = createClient();
     const { data, error } = await supabase
@@ -86,4 +95,22 @@ export async function getSavedAlbums(userId: string): Promise<string[]> {
     }
     
     return data[0]?.library_albums || [];
+}
+
+export async function getSavedSongs(userId: string): Promise<Song[]> {
+    const savedAlbums = await getSavedAlbums(userId);
+    let savedSongs: Song[] = [];
+    // loop through saved albums and get songs
+    for (const albumId of savedAlbums) {
+        const album = await getAlbumById(albumId);
+        if (album && album.songIds) {
+            const songs = await Promise.all(
+                album.songIds.map(async (songId: string) => {
+                    return await getSongById(songId);
+                })
+            );
+            savedSongs = [...savedSongs, ...songs];
+        }
+    }
+    return savedSongs;
 }
