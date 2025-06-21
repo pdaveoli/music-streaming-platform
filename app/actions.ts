@@ -269,3 +269,17 @@ export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
     return playlists || [];    
 }
 
+export async function getPublicPlaylists(): Promise<Playlist[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("playlists")
+        .select("*")
+        .eq("public", 1);
+
+    if (error) {
+        console.error("Error fetching public playlists:", error);
+        return [];
+    }
+
+    return data;
+}

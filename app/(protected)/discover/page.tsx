@@ -1,21 +1,26 @@
 "use server";
-import { getAlbums, Album} from "@/app/actions";
+import { getAlbums, getPublicPlaylists} from "@/app/actions";
 import  AlbumList  from "@/components/album-list"
+import PlaylistList from "@/components/playlist-list";
 
 export default async function DiscoverPage() {
 
     // Get the albums from the database
     const albums = await getAlbums();
-
-    const loadAlbumPage = (albumId: string) => () => {
-        // Redirect to the album page with the selected album ID
-        window.location.href = `/album/${albumId}`;
-    }
+    const publicPlaylists = await getPublicPlaylists();
+    
 
     return (
-        <div className="flex flex-col items-center justify-center h-screen">
+        <div className="flex flex-col items-center justify-center min-h-screen p-4">
             {/* Grid to display songs */}
+            <h1 className="text-2xl font-bold mb-4">Discover Albums</h1>
+            <div className="flex max-w-2xl w-full flex-col items-center">
             <AlbumList albums={albums} />
+            </div>
+            <h1 className="text-2xl font-bold mb-4 mt-8">Public Playlists</h1>
+            <div className="flex max-w-2xl w-full flex-col items-center">
+            <PlaylistList playlists={publicPlaylists} />
+            </div>
         </div>
     );
 }

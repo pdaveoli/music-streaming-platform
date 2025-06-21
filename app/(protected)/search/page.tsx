@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import SearchPageData from "@/app/client-actions";
+import { SearchPageData } from "@/app/client-actions";
 import type { Album, Artist, Song } from "@/app/client-actions";
 import { SongList } from "@/components/song-list";
 import Link from "next/link";

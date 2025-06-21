@@ -239,7 +239,7 @@ export async function getAlbums() {
 }
 
 
-export default async function SearchPageData() : Promise<{
+export async function SearchPageData() : Promise<{
   albums: Album[];
   songs: Song[];
   artists: Artist[];
@@ -252,3 +252,19 @@ export default async function SearchPageData() : Promise<{
 
   return Promise.resolve({ albums: albums ? albums : [], songs: songs ? songs : [], artists: artists ? artists : [] });
 }
+
+export async function getUserEditablePlaylists(userId: string): Promise<Playlist[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from("playlists")
+        .select("*")
+        .eq("userId", userId);
+
+    if (error) {
+        console.error("Error fetching user playlists:", error);
+        return [];
+    }
+
+    return data;
+}
+
