@@ -11,7 +11,7 @@ import {
 } from "@/app/client-actions";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { Ellipsis, Play, Shuffle } from "lucide-react";
+import { Ellipsis, Eye, Play, Shuffle, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { useAudio } from "@/context/AudioContext";
 import {
@@ -38,6 +38,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 
@@ -53,6 +60,8 @@ export default function PlaylistPage(props: PageProps) {
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredSongs, setFilteredSongs] = useState<Song[]>([]);
+  const [denied, setDenied] = useState(false);
+  const [visibility, setVisibility] = useState<string>("private");
 
   useEffect(() => {
     const loadData = async () => {
@@ -76,6 +85,9 @@ export default function PlaylistPage(props: PageProps) {
         }
 
         setPlaylist(playlistData);
+        if (playlistData) {
+          setVisibility(playlistData.public === 1 ? "public" : "private");
+        }
 
         if (playlistData && playlistData.songs) {
           // get playlist songs using the fetched data directly
@@ -98,6 +110,17 @@ export default function PlaylistPage(props: PageProps) {
         }
 
         setUserId(user.id);
+
+        // Check if the playlist is private
+        if (playlistData.public === 0 && user.id !== playlistData.userId) {
+          // Check if the user is shared
+          if (!playlistData.sharedIds?.includes(user.id)) {
+            setDenied(true);
+            toast.error("This playlist is private and you do not have access.");
+            window.location.href = "/home";
+            return;
+          }
+        }
 
         // Load user's saved songs
         if (user.id) {
@@ -234,6 +257,10 @@ export default function PlaylistPage(props: PageProps) {
   };
 
   const editDetails = async (event: React.FormEvent<HTMLFormElement>) => {
+    if (!playlist) {
+      toast.error("Playlist not found.");
+      return;
+    }
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
     let updatedName = formData.get("name") as string;
@@ -245,6 +272,9 @@ export default function PlaylistPage(props: PageProps) {
     if (!updatedCoverArt) {
       updatedCoverArt = playlist?.coverArt || "/default-playlist-image.png"; // Fallback to current cover art if empty
     }
+    // Use the state variable for visibility, not formData
+    const updatedVisibility = visibility === "public" ? 1 : 0;
+
     const supabase = createClient();
     const { data, error } = await supabase
       .from("playlists")
@@ -252,6 +282,7 @@ export default function PlaylistPage(props: PageProps) {
         name: updatedName,
         description: updatedDescription,
         coverArt: updatedCoverArt,
+        public: updatedVisibility,
       })
       .eq("id", playlist?.id);
     if (error) {
@@ -355,7 +386,7 @@ export default function PlaylistPage(props: PageProps) {
     }
   };
 
-  if (loading) {
+  if (loading || denied) {
     return (
       <div className="flex flex-col items-center justify-center p-4 md:p-8 mx-auto w-full h-screen">
         Loading...
@@ -381,12 +412,23 @@ export default function PlaylistPage(props: PageProps) {
         className="rounded-lg mb-4 w-128 h-128 object-cover shadow-lg"
       />
       <h1 className="text-4xl font-bold mb-4">{playlist.name}</h1>
-      <div className="max-w-2xl mb-4">
+      <div className="max-w-2xl mb-2">
         <ExpandableDescription
           text={playlist.description || "No description"}
           truncateLength={300}
         />
       </div>
+      {playlist.public === 1 ? (
+        <div className="flex items-center justify-center mb-4 text-gray-500">
+          <Eye className="mr-2 w-4 h-4" />
+          <p className="text-sm ">Public Playlist</p>
+        </div>
+      ) : (
+        <div className="flex items-center justify-center mb-4 text-gray-500">
+          <Lock className="mr-2 w-4 h-4" />
+          <p className="text-sm ">Private Playlist</p>
+        </div>
+      )}
       <div className="flex gap-4">
         <Button
           onClick={() => setShowEditPlaylist(!showEditPlaylist)}
@@ -419,9 +461,21 @@ export default function PlaylistPage(props: PageProps) {
             <textarea
               defaultValue={playlist.description}
               placeholder="Description goes here"
-              className="border p-2 rounded mb-2 w-full"
+              className="border p-2 rounded w-full"
               name="description"
             />
+            <Select
+              value={visibility}
+              onValueChange={(value) => setVisibility(value)}
+            >
+              <SelectTrigger className="w-full mb-2">
+                <SelectValue placeholder="Visibility" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="public"><div className="flex items-center"><Eye className="mr-2 w-4 h-4" />Public</div></SelectItem>
+                <SelectItem value="private"><div className="flex items-center"><Lock className="mr-2 w-4 h-4" />Private</div></SelectItem>
+              </SelectContent>
+            </Select>
             
             <Button
               type="button"

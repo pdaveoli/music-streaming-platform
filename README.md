@@ -10,9 +10,9 @@ Deployed here: [Vercel Web Link](https://music-streaming-platform-two.vercel.app
 - [ ] Upload albums across three genres
 - [X] Setup audio playback
 - [X] Setup Library with addable songs
-- [ ] Setup queue and lyric view
-- [ ] Implement creating and playing playlists
-- [ ] Implement adding to queue and removing from queue
+- [X] Setup queue and lyric view
+- [X] Implement creating and playing playlists
+- [X] Implement adding to queue and removing from queue
 - [ ] Setup user after-signup screen for selecting Favourite artists and Favourite Albums
 - [ ] Create smart playlists that add based on certain properties
 

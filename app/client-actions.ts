@@ -37,6 +37,8 @@ export interface Playlist {
     coverArt: string;
     description: string;
     createdAt: string; // ISO date string
+    public: number; // 0 for private, 1 for public
+    sharedIds?: string[]; // Optional array of user IDs who can access this playlist
 }
 
 export interface Artist {
