@@ -50,6 +50,18 @@ export interface Artist {
     started: string,
     from: string
 }
+
+export interface UserDetails {
+    id: string; // UUID of the user
+    name: string;
+    date_of_birth: string; // ISO date string
+    fav_genres: string[]; // Array of favorite genres
+    playlists: string[]; // Array of playlist IDs
+    library_albums: string[]; // Array of album IDs
+    userIcon: string; // URL to the user's icon
+    bio: string;
+}
+
 export async function getAlbumById(id: string): Promise<Album | null> {
     const supabase = createClient();
     const { data, error } = await supabase

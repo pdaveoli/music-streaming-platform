@@ -72,29 +72,32 @@ export default async function LibraryPage() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {playlists.map((playlist) => (
-          <div key={playlist.id} className="w-full h-full">
-          <Link
-            
-            href={`/playlists/${playlist.id}`}
-            className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between"
-          >
-            <div className="flex items-center">
-              <img
-                src={playlist.coverArt || "/default-playlist.png"}
-                alt={playlist.name}
-                className="w-16 h-16 rounded-lg mr-4"
-              />
-              <div>
-                <h2 className="text-lg font-semibold">{playlist.name}</h2>
-                <p className="text-gray-500">{playlist.description}</p>
+          <div key={playlist.id} className="w-full">
+            <Link
+              href={`/playlists/${playlist.id}`}
+              className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between overflow-hidden h-full"
+            >
+              <div className="flex items-center overflow-hidden">
+                <img
+                  src={playlist.coverArt || "/default-playlist.png"}
+                  alt={playlist.name}
+                  className="w-16 h-16 rounded-lg mr-4 flex-shrink-0"
+                />
+                <div className="overflow-hidden">
+                  <h2 className="text-lg font-semibold truncate">
+                    {playlist.name}
+                  </h2>
+                  <p className="text-sm text-gray-400 line-clamp-3">
+                    {playlist.description}
+                  </p>
+                </div>
               </div>
-            </div>
-          </Link>
+            </Link>
           </div>
         ))}
       </div>
       {playlists.length === 0 && (
-        <div className="justify-center items-center text-center p-">
+        <div className="justify-center items-center text-center p-4">
           <h1 className="text-2xl font-bold mb-4">No Playlists Found</h1>
           <p className="text-gray-600">You have no saved playlists yet.</p>
           <Link href="/discover" className="mt-4 text-blue-500 hover:underline">
