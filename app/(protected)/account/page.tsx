@@ -58,7 +58,7 @@ export default function AccountPage() {
         setUserDetails(userDetails);
         setAvatarUrl(userDetails.userIcon || null);
         // Set the favorite genres from the fetched data
-        setFavouriteGenres(userDetails.favourite_genres || []);
+        setFavouriteGenres(userDetails.fav_genres || []);
       } else {
         toast.error("No user details found");
       }

@@ -7,6 +7,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -22,6 +23,9 @@ import {
 } from 'lucide-react';
 import { createClient } from "@/lib/supabase/client"; 
 import { redirect } from 'next/navigation'; // Import redirect for navigation
+import type { UserDetails } from '@/app/client-actions';
+import { toast } from 'sonner';
+import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu';
 
 interface NavItem {
   href: string;
@@ -45,6 +49,7 @@ const userNavigationItems = [
 export default function AppSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null); // State for user email
+  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const playerHeight = "84px"; 
 
   useEffect(() => {
@@ -59,6 +64,28 @@ export default function AppSidebar() {
         setUserEmail(user.email || 'Guest');
       } else {
         setUserEmail('Guest'); // No user found
+      }
+
+      // fetch user details if needed
+      if (!user) {
+        console.error("No user found, redirecting to login");
+        redirect('/login'); // Redirect to login if no user is found
+      }
+      const { data: userDetails, error: detailsError } = await supabase
+        .from('users')
+        .select('*')
+        .eq('id', user?.id)
+        .single();
+      if (detailsError) {
+        console.error("Error fetching user details:", detailsError);
+        return;
+      }
+      if (userDetails) {
+        setUserDetails(userDetails);
+      }
+      else {
+        console.error("No user details found for user ID:", user?.id);
+        toast.error("No user details found, please check your account settings.");
       }
     };
 
@@ -98,7 +125,7 @@ export default function AppSidebar() {
                 <UserIcon className="h-5 w-5" />
                 {/* Apply truncation classes directly to the p tag */}
                 <p className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  {userEmail ? userEmail : 'Loading...'}
+                  {userDetails?.name || userEmail || 'Guest'}
                 </p>
               </div>
               <SettingsIcon className="h-4 w-4 opacity-70" />
@@ -107,8 +134,13 @@ export default function AppSidebar() {
           <DropdownMenuContent
             side="top"
             align="start"
-            className="w-[calc(100%_-_2rem)] mx-4 mb-1 md:w-[calc(theme(space.64)_-_2rem)] md:mx-0"
+            className="w-[calc(100%_-_2rem)] mx-4 mb-1 md:w-[calc(theme(space.64)_-_2rem)] md:mx-0 p-2"
           >
+            <DropdownMenuLabel className='flex items-center space-x-2 pl-2 w-full overflow-hidden'>
+              <UserIcon className="h-5 w-5 text-muted-foreground" />
+              <span className='text-sm truncate'>{userEmail || "Guest"}</span>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
             {userNavigationItems.map((item) => (
                  <DropdownMenuItem key={item.label} asChild>
                     <Link href={item.href} className="flex items-center space-x-2 w-full">

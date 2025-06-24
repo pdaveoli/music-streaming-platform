@@ -24,7 +24,7 @@ export default function ProtectedLayout({
             >
                 {children}
                 
-            <Footer />
+            
             </main>
           <PersistentAudioPlayerUI /> {/* Player UI always visible */}
         </AudioProvider>
