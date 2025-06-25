@@ -1,7 +1,9 @@
 "use server";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import { Hero } from "@/components/hero";
+import { Hero } from "@/components/landing-components/hero";
+import FeaturesView  from "@/components/landing-components/features-view";
+import LandingFooter from "@/components/landing-components/landing-footer";
 
 export default async function Home() {
 
@@ -14,9 +16,11 @@ export default async function Home() {
     redirect("/home");
 
   return (
-    <main className="min-h-screen flex flex-col items-center">
+    <main className="min-h-screen flex flex-col items-center overflow-auto no-scrollbar">
       <div className="flex flex-col items-center">
         <Hero />
+        <FeaturesView />
+        <LandingFooter />
       </div>
     </main>
   );

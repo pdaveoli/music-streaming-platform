@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { Button } from "./ui/button";
+import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -24,32 +24,31 @@ export function Hero() {
   };
 
   return (
-    <div className="w-screen min-h-screen bg-black text-white flex flex-col">
+    <div className="w-full min-h-screen dark:bg-black bg-white text-black dark:text-white flex flex-col">
       <nav className="w-full p-6 flex justify-between items-center container mx-auto">
         <div className="text-4xl font-bold">
           Free<span className="text-red-500">Stream</span>
         </div>
-        <div className="font-semibold text-lg flex items-center gap-4 text-red-700 justify-center">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="32"
-            height="32"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            className="lucide lucide-music-icon lucide-music"
+        <div className="flex items-center gap-4">
+          <Button
+            asChild
+            className="bg-red-500 hover:bg-red-600 text-white text-lg font-medium px-6 py-3 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-200"
           >
-            <path d="M9 18V5l12-2v13" />
-            <circle cx="6" cy="18" r="3" />
-            <circle cx="18" cy="16" r="3" />
-          </svg>
+            <Link href="/auth/sign-up">Sign Up</Link>
+          </Button>
+          <Button
+            asChild
+            variant="link"
+            className="text-lg font-light rounded shadow hover:animate-pulse text-black dark:text-white"
+          >
+            <Link href="/auth/login">
+              Log in
+            </Link>
+          </Button>
         </div>
       </nav>
 
-      {/* Main content area with a two-column layout on medium screens and up */}
+      {/* Main content area */}
       <div className="flex-grow container mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-8 p-6">
         {/* Left Column: Text Content */}
         <motion.header
@@ -68,7 +67,10 @@ export function Hero() {
             variants={fadeInUp}
             className="w-20 h-2 bg-red-500 my-4"
           ></motion.div>
-          <motion.p variants={fadeInUp} className="text-xl mb-10 text-gray-300">
+          <motion.p
+            variants={fadeInUp}
+            className="text-xl mb-10 text-gray-600 dark:text-gray-300"
+          >
             FreeStream is a completely free online streaming platform for many
             modern songs. With synced lyrics and playlists, you have full
             control over aux and the mood of the party!
@@ -82,18 +84,6 @@ export function Hero() {
               className="bg-red-500 hover:bg-red-600 text-white text-lg font-medium px-6 py-6 rounded-lg shadow-lg transform hover:scale-105 transition-transform duration-200"
             >
               <Link href="/auth/sign-up">Get Started</Link>
-            </Button>
-            <Button
-              asChild
-              variant="link"
-              className="text-lg font-light px-4 py-2 rounded shadow ml-4 hover:animate-pulse text-white"
-            >
-              <Link
-                href="/auth/login"
-                className="flex flex-row items-center justify-center gap-1"
-              >
-                Log in <ArrowRight />
-              </Link>
             </Button>
           </motion.div>
         </motion.header>
@@ -110,7 +100,7 @@ export function Hero() {
             alt="A person listening to music with headphones"
             layout="fill"
             objectFit="cover"
-            className="rounded-2xl shadow-2xl shadow-red-500/20"
+            className="rounded-2xl shadow-2xl shadow-gray-400/20 dark:shadow-red-500/20"
             priority
           />
         </motion.div>
