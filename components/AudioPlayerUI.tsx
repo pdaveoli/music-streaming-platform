@@ -293,7 +293,7 @@ export default function PersistentAudioPlayerUI() {
   if (!isMounted) {
     // Simplified loading skeleton for the player bar
     return (
-      <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg h-[84px] z-50 flex items-center justify-center">
+      <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50 flex items-center justify-center min-h-[80px]">
         <p className="text-muted-foreground">Loading Player...</p>
       </div>
     );
@@ -301,7 +301,7 @@ export default function PersistentAudioPlayerUI() {
 
   if (tracks.length === 0) {
     return (
-      <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
+      <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
         <div className="w-full flex items-center justify-between gap-3 h-[60px]">
           <p className="flex-grow text-center text-sm text-muted-foreground">
             Select a track to play
@@ -314,7 +314,7 @@ export default function PersistentAudioPlayerUI() {
 
   if (!currentTrack) {
     return (
-      <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
+      <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
         <div className="w-full flex items-center justify-between gap-3 h-[60px]">
           <p className="text-sm text-muted-foreground flex-grow text-center">
             No track selected.
@@ -327,7 +327,7 @@ export default function PersistentAudioPlayerUI() {
 
   // Main player UI
   return (
-    <div className="fixed top-0 left-0 right-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
+    <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
       <div className="w-full flex items-center justify-between h-[60px]">
         <div className="flex items-center gap-3 justify-center flex-grow min-w-0 px-4">
           <Image

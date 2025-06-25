@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from 'react'; // Added useEffect
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation'; // Import usePathname for active links
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -9,6 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import {
   HomeIcon,
@@ -20,12 +22,13 @@ import {
   LogOutIcon,
   MenuIcon,
   XIcon,
+  Music, // A nice icon for the logo
 } from 'lucide-react';
 import { createClient } from "@/lib/supabase/client"; 
-import { redirect } from 'next/navigation'; // Import redirect for navigation
+import { redirect } from 'next/navigation';
 import type { UserDetails } from '@/app/client-actions';
 import { toast } from 'sonner';
-import { DropdownMenuLabel } from '@radix-ui/react-dropdown-menu';
+import { cn } from '@/lib/utils'; // For cleaner class name logic
 
 interface NavItem {
   href: string;
@@ -48,9 +51,9 @@ const userNavigationItems = [
 
 export default function AppSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null); // State for user email
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
-  const playerHeight = "84px"; 
+  const pathname = usePathname(); // Get current path for active styles
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -59,92 +62,125 @@ export default function AppSidebar() {
       const { data: { user }, error } = await supabase.auth.getUser(); 
       if (error) {
         console.error("Error fetching user:", error.message);
-        setUserEmail('Guest'); // Fallback or handle error appropriately
+        setUserEmail('Guest');
       } else if (user) {
         setUserEmail(user.email || 'Guest');
       } else {
-        setUserEmail('Guest'); // No user found
+        setUserEmail('Guest');
       }
 
-      // fetch user details if needed
       if (!user) {
         console.error("No user found, redirecting to login");
-        redirect('/login'); // Redirect to login if no user is found
+        redirect('/login');
+        return;
       }
-      const { data: userDetails, error: detailsError } = await supabase
+
+      const { data: details, error: detailsError } = await supabase
         .from('users')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
+
       if (detailsError) {
         console.error("Error fetching user details:", detailsError);
         return;
       }
-      if (userDetails) {
-        setUserDetails(userDetails);
-      }
-      else {
-        console.error("No user details found for user ID:", user?.id);
+
+      if (details) {
+        // If the user icon is a path, construct the full public URL for display
+        if (details.userIcon && !details.userIcon.startsWith('http')) {
+          const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(details.userIcon);
+          details.userIcon = urlData.publicUrl;
+        }
+        setUserDetails(details);
+      } else {
+        console.error("No user details found for user ID:", user.id);
         toast.error("No user details found, please check your account settings.");
       }
     };
 
     fetchUser();
-  }, []); // Empty dependency array ensures this runs once on mount
+  }, []);
 
 
   const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
 
   const SidebarContent = () => (
-    <div className="flex flex-col flex-grow min-h-0"> 
-      <div className="flex-grow p-4 overflow-y-auto min-h-0"> 
-        <nav className="space-y-2">
-          {mainNavigationItems.map((item) => (
-            <Button
-              key={item.label}
-              variant="ghost"
-              className="w-full justify-start text-base"
-              asChild
-            >
-              <Link href={item.href} className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-muted">
-                <item.icon className="h-5 w-5 text-muted-foreground" />
-                <span>{item.label}</span>
-              </Link>
-            </Button>
-          ))}
+    <div className="flex flex-col h-full">
+      {/* Top section: Logo and main navigation */}
+      <div className="flex-grow">
+        <div className="flex items-center justify-between h-20 px-4">
+          <Link href="/home" className="flex items-center gap-2 text-2xl font-bold">
+            <Music className="h-7 w-7 text-red-500" />
+            <span>
+              Free<span className="text-red-500">Stream</span>
+            </span>
+          </Link>
+          <Button variant="ghost" size="icon" onClick={toggleMobileMenu} className="md:hidden">
+            <XIcon className="h-6 w-6" />
+          </Button>
+        </div>
+        <nav className="px-2 space-y-1">
+          {mainNavigationItems.map((item) => {
+            const isActive = pathname === item.href;
+            return (
+              <Button
+                key={item.label}
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-base h-12",
+                  isActive 
+                    ? "bg-primary/10 text-primary hover:bg-primary/20" 
+                    : "hover:bg-muted/50"
+                )}
+                asChild
+              >
+                <Link href={item.href} className="flex items-center gap-3">
+                  <item.icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </Link>
+              </Button>
+            );
+          })}
         </nav>
       </div>
 
-      <div className="p-4 border-t border-border shrink-0">
+      {/* Bottom section: User profile dropdown */}
+      <div className="p-4 border-t border-border/50">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between text-sm" disabled={!userEmail}>
-              {/* This div will contain the icon and the email text */}
-              {/* Added min-w-0 to allow this flex item to shrink and enable truncation on its child */}
-              <div className="flex items-center space-x-2 min-w-0"> 
-                <UserIcon className="h-5 w-5" />
-                {/* Apply truncation classes directly to the p tag */}
-                <p className="whitespace-nowrap overflow-hidden text-ellipsis">
-                  {userDetails?.name || userEmail || 'Guest'}
+            <Button variant="ghost" className="w-full justify-start items-center h-14 gap-3 text-left">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted flex-shrink-0">
+                {userDetails?.userIcon ? (
+                  <img src={userDetails.userIcon} alt="User Avatar" className="w-full h-full object-cover rounded-full" />
+                ) : (
+                  <UserIcon className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="flex-grow min-w-0">
+                <p className="font-semibold truncate">
+                  {userDetails?.name || 'Guest'}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {userEmail || '...'}
                 </p>
               </div>
-              <SettingsIcon className="h-4 w-4 opacity-70" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent
             side="top"
             align="start"
-            className="w-[calc(100%_-_2rem)] mx-4 mb-1 md:w-[calc(theme(space.64)_-_2rem)] md:mx-0 p-2"
+            className="w-[var(--radix-dropdown-menu-trigger-width)] mb-1"
           >
-            <DropdownMenuLabel className='flex items-center space-x-2 pl-2 w-full overflow-hidden'>
+            <DropdownMenuLabel className='flex items-center gap-2 p-2'>
               <UserIcon className="h-5 w-5 text-muted-foreground" />
-              <span className='text-sm truncate'>{userEmail || "Guest"}</span>
+              <span className='text-sm font-normal truncate'>{userEmail || "Guest"}</span>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {userNavigationItems.map((item) => (
                  <DropdownMenuItem key={item.label} asChild>
-                    <Link href={item.href} className="flex items-center space-x-2 w-full">
-                        <item.icon className="h-4 w-4 text-muted-foreground" />
+                    <Link href={item.href} className="flex items-center gap-2 w-full">
+                        <item.icon className="h-4 w-4" />
                         <span>{item.label}</span>
                     </Link>
                  </DropdownMenuItem>
@@ -157,7 +193,7 @@ export default function AppSidebar() {
 
   return (
     <>
-      <div className={`md:hidden fixed top-[${playerHeight}] left-0 z-50 p-2`}>
+      <div className={`md:hidden fixed top-0 left-0 z-50 p-2`}>
         <Button onClick={toggleMobileMenu} variant="ghost" size="icon" className="m-2">
           {isMobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
         </Button>
@@ -165,7 +201,7 @@ export default function AppSidebar() {
 
       <aside
         className={`
-          fixed left-0 top-[${playerHeight}] bottom-0 z-40 h-[calc(100vh_-_84px)]
+          fixed left-0 top-0 bottom-0 z-40 h-screen
           bg-background
           border-r border-border 
           flex flex-col 
