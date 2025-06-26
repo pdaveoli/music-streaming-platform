@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import AlbumList from "@/components/album-list";
 import { CreatePlaylistButton } from "@/components/create-playlist-button";
+import PlaylistList from "@/components/playlist-list";
 
 export default async function LibraryPage() {
   // Get the users saved albums from the database
@@ -56,7 +57,7 @@ export default async function LibraryPage() {
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">Your Library</h1>
       <p className="text-gray-600 mb-4">Saved Albums</p>
-      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="max-w-4xl w-full flex flex-col items-center">
         <AlbumList albums={albums} />
       </div>
       <p className="text-gray-600 mt-4">
@@ -70,31 +71,8 @@ export default async function LibraryPage() {
         <p> Saved Playlists </p>
         <CreatePlaylistButton />
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {playlists.map((playlist) => (
-          <div key={playlist.id} className="w-full">
-            <Link
-              href={`/playlists/${playlist.id}`}
-              className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between overflow-hidden h-full"
-            >
-              <div className="flex items-center overflow-hidden">
-                <img
-                  src={playlist.coverArt || "/default-playlist.png"}
-                  alt={playlist.name}
-                  className="w-16 h-16 rounded-lg mr-4 flex-shrink-0"
-                />
-                <div className="overflow-hidden">
-                  <h2 className="text-lg font-semibold truncate">
-                    {playlist.name}
-                  </h2>
-                  <p className="text-sm text-gray-400 line-clamp-3">
-                    {playlist.description}
-                  </p>
-                </div>
-              </div>
-            </Link>
-          </div>
-        ))}
+      <div className="max-w-4xl w-full flex flex-col items-center">
+        <PlaylistList playlists={playlists} />
       </div>
       {playlists.length === 0 && (
         <div className="justify-center items-center text-center p-4">

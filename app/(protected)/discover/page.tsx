@@ -14,11 +14,11 @@ export default async function DiscoverPage() {
         <div className="flex flex-col items-center justify-center min-h-screen p-4">
             {/* Grid to display songs */}
             <h1 className="text-2xl font-bold mb-4">Discover Albums</h1>
-            <div className="flex max-w-2xl w-full flex-col items-center">
+            <div className="flex max-w-4xl w-full flex-col items-center">
             <AlbumList albums={albums} />
             </div>
             <h1 className="text-2xl font-bold mb-4 mt-8">Public Playlists</h1>
-            <div className="flex max-w-2xl w-full flex-col items-center">
+            <div className="flex max-w-4xl w-full flex-col items-center">
             <PlaylistList playlists={publicPlaylists} />
             </div>
         </div>

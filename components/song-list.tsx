@@ -20,13 +20,24 @@ import {
 import { getUserEditablePlaylists } from "@/app/client-actions";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
 
 export function SongList({
   songs,
   hideControls,
+  onPlayClick,
+  onAddToQueue,
+  onRemoveFromPlaylist,
+  onAddSong,
+  onDeletePlaylist,
 }: {
   songs: Song[];
   hideControls?: boolean;
+  onPlayClick?: (song: Song, index: number) => void;
+  onAddToQueue?: (song: Song, next: boolean) => void;
+  onRemoveFromPlaylist?: (song: Song) => void;
+  onAddSong?: () => void;
+  onDeletePlaylist?: () => void;
 }) {
   const {
     loadTracks,
@@ -159,78 +170,111 @@ export function SongList({
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 w-full mx-auto">
-        <div className="flex justify-end items-center mb-4 gap-1">
-          {!hideControls && (
-            <>
-              <Button
-                className="bg-blue-500 hover:bg-blue-600 text-white rounded-full mb-4 "
-                onClick={handleShuffleAll}
-              >
-                <Shuffle className="w-5 h-5" />
-              </Button>
-              <Button className="bg-gray-500 hover:bg-gray-600 text-white rounded-full mb-4 ">
-                <Ellipsis className="w-5 h-5" />
-              </Button>
-            </>
-          )}
-        </div>
-        {songs.map((song, index) => (
-          <div
-            key={song.id}
-            // Use flex and justify-between to push the button to the right
-            className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between"
-          >
-            <ContextMenu>
-              <ContextMenuTrigger className="w-full flex items-center">
-                {/* Left side: Image and Song Info */}
-                {/* Added flex-1 here to make this section take available space */}
-                <div className="flex items-center overflow-hidden flex-1">
-                  <img
-                    src={song.coverArt || "/placeholder-song.png"}
-                    alt={song.name}
-                    className="w-16 h-16 object-cover rounded-lg mr-4 flex-shrink-0"
-                  />
-                  <div className="overflow-hidden">
-                    <h2 className="text-xl font-semibold truncate text-white">
-                      {song.name}
-                    </h2>
-                    <div className="flex items-center text-sm text-gray-300 space-x-2">
-                      <span>{song.artist}</span>
-                      <span>&bull;</span>
-                      <span>{song.duration}</span>
+      <div className="w-full">
+        {!hideControls && (
+          <div className="flex justify-end items-center mb-4 gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="rounded-full"
+              onClick={handleShuffleAll}
+            >
+              <Shuffle className="w-5 h-5" />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="icon" className="rounded-full">
+                  <Ellipsis className="w-5 h-5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-48">
+                {onAddSong && (
+                  <DropdownMenuItem onClick={() => onAddSong()}>
+                    Add Songs
+                  </DropdownMenuItem>
+                )}
+                
+                <DropdownMenuItem onClick={handleShuffleAll}>
+                  Shuffle All
+                </DropdownMenuItem>
+                <DropdownMenuItem>Add to Playlist</DropdownMenuItem>
+                {onDeletePlaylist && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-red-500 focus:text-red-500 focus:bg-red-100 dark:focus:bg-red-900/40"
+                      onClick={() => onDeletePlaylist()}
+                    >
+                      Delete Playlist
+                    </DropdownMenuItem>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+          </div>
+        )}
+        <div className="border-t">
+          {songs.map((song, index) => (
+            <div
+              key={song.id}
+              className="border-b" // Add bottom border for separation
+            >
+              <ContextMenu>
+                <ContextMenuTrigger className="w-full flex items-center p-3 hover:bg-accent transition-colors">
+                  {/* Left side: Image and Song Info */}
+                  <div className="flex items-center overflow-hidden flex-1">
+                    <img
+                      src={song.coverArt || "/placeholder-song.png"}
+                      alt={song.name}
+                      className="w-12 h-12 object-cover rounded-md mr-4 flex-shrink-0"
+                    />
+                    <div className="overflow-hidden">
+                      <h2 className="font-semibold truncate text-foreground">
+                        {song.name}
+                      </h2>
+                      <div className="flex items-center text-sm text-muted-foreground space-x-2">
+                        <span>{song.artist}</span>
+                        <span>&bull;</span>
+                        <span>{song.duration}</span>
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Right side: Play Button */}
-                {/* Removed right-0, pl-4 provides spacing */}
-                <div className="pl-4">
-                  <Button
-                    onClick={() => handlePlayClick(song, index)}
-                    className="bg-green-500 hover:bg-green-600 rounded-full p-3"
+                  {/* Right side: Play Button */}
+                  <div className="pl-4">
+                    <Button
+                      onClick={() => handlePlayClick(song, index)}
+                      variant="ghost" // Use ghost variant for no background
+                      size="icon"
+                      className="rounded-full"
+                    >
+                      <Play className="h-5 w-5" />
+                    </Button>
+                  </div>
+                </ContextMenuTrigger>
+                <ContextMenuContent className="w-48">
+                  <ContextMenuItem onClick={() => handlePlayClick(song, index)}>
+                    Play Now
+                  </ContextMenuItem>
+                  <ContextMenuItem onClick={() => handleAddToQueue(song, true)}>
+                    Queue Next
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => handleAddToQueue(song, false)}
                   >
-                    <Play className="h-5 w-5 text-white" />
-                  </Button>
-                </div>
-              </ContextMenuTrigger>
-              <ContextMenuContent className="w-48">
-                <ContextMenuItem onClick={() => handlePlayClick(song, index)}>
-                  Play Now
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => handleAddToQueue(song, true)}>
-                  Queue Next
-                </ContextMenuItem>
-                <ContextMenuItem onClick={() => handleAddToQueue(song, false)}>
-                  Queue Last
-                </ContextMenuItem>
-                <ContextMenuItem onSelect={() => handleOpenAddToPlaylist(song)}>
-                  Add to Playlist
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
-          </div>
-        ))}
+                    Queue Last
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onSelect={() => handleOpenAddToPlaylist(song)}
+                  >
+                    Add to Playlist
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
+            </div>
+          ))}
+        </div>
       </div>
 
       <Dialog open={isAddToPlaylistOpen} onOpenChange={setIsAddToPlaylistOpen}>

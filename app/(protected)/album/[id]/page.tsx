@@ -142,7 +142,7 @@ export default function AlbumPage(props: PageProps) {
           />
         </div>
       </div>
-      <div className="flex flex-col items-center justify-center p-4 md:p-8 max-w-4xl mx-auto">
+      <div className="flex flex-col items-center justify-center p-4 md:p-8 w-full pl-10 pr-10 mx-auto">
         <SongList songs={songs} />
       </div>
     </>

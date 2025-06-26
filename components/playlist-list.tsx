@@ -1,25 +1,24 @@
 "use client";
 import type { Playlist } from "@/app/actions";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function PlaylistList ({ playlists } : { playlists: Playlist[]}) {
-
-    const LoadPlaylistPage = (playlistId: string) => () => {
-        // Redirect using next js navigation
-        redirect(`/playlists/${playlistId}`);
-    }
-
+    const router = useRouter();
     return (
-        <div className="grid grid-cols-4 sm:grid-cols-2 gap-4 p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 p-4">
             {playlists.map((playlist: Playlist) => (
-                <div key={playlist.id} className="bg-white rounded-lg shadow-md p-4 text-center overflow-hidden" onClick={LoadPlaylistPage(playlist.id)}>
+                <div 
+                key={playlist.id} 
+                    className="flex flex-col cursor-pointer group" 
+                    onClick={() => router.push(`/playlists/${playlist.id}`)}
+                >
                     <img
                         src={playlist.coverArt}
                         alt={playlist.name}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
+                        className="w-full aspect-square object-cover rounded-md mb-2 transition-opacity group-hover:opacity-80"
                     />
-                    <h2 className="text-xl font-semibold mb-2 text-black truncate">{playlist.name}</h2>
-                    <p className="text-gray-600 truncate">{playlist.description}</p>
+                    <h2 className="font-semibold truncate w-full">{playlist.name}</h2>
+                    <p className="text-sm text-gray-500 truncate w-full">{playlist.description}</p>
                 </div>
             ))}
         </div>

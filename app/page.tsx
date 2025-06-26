@@ -16,8 +16,8 @@ export default async function Home() {
     redirect("/home");
 
   return (
-    <main className="min-h-screen flex flex-col items-center overflow-auto no-scrollbar">
-      <div className="flex flex-col items-center">
+    <main className="min-h-screen flex flex-col items-center overflow-auto no-scrollbar min-w-screen">
+      <div className="flex flex-col items-center w-full">
         <Hero />
         <FeaturesView />
         <LandingFooter />

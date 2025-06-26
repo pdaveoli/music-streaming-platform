@@ -1,25 +1,25 @@
 "use client";
 import { Album } from "@/app/actions";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 export default function AlbumList ({ albums } : { albums: Album[]}) {
-
-    const LoadAlbumPage = (albumId: string) => () => {
-        // Redirect using next js navigation
-        redirect(`/album/${albumId}`);
-    }
+    const router = useRouter();
 
     return (
-        <div className="grid grid-cols-4 sm:grid-cols-2 gap-4 p-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 p-4">
             {albums.map((album: Album) => (
-                <div key={album.id} className="bg-white rounded-lg shadow-md p-4 text-center" onClick={LoadAlbumPage(album.id)}>
+                <div 
+                    key={album.id} 
+                    className="flex flex-col cursor-pointer group" 
+                    onClick={() => router.push(`/album/${album.id}`)}
+                >
                     <img
                         src={album.coverArt}
                         alt={album.name}
-                        className="w-full h-48 object-cover rounded-lg mb-4"
+                        className="w-full aspect-square object-cover rounded-md mb-2 transition-opacity group-hover:opacity-80"
                     />
-                    <h2 className="text-xl font-semibold mb-2 text-black">{album.name}</h2>
-                    <p className="text-gray-600">{album.artist}</p>
+                    <h2 className="font-semibold truncate w-full">{album.name}</h2>
+                    <p className="text-sm text-gray-500 truncate w-full">{album.artist}</p>
                 </div>
             ))}
         </div>
