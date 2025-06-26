@@ -70,7 +70,7 @@ export default function SearchPage() {
       </div>
 
       {/* Results Section */}
-      <div className="w-full max-w-4xl mt-4">
+      <div className="w-full pl-5 pr-5 mt-4">
         {searchQuery ? (
           <>
             <h2 className="text-lg font-semibold mb-4 text-center">
@@ -82,21 +82,21 @@ export default function SearchPage() {
                   <h3 className="text-md font-semibold text-center mb-2">
                     Albums
                   </h3>
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="border-t">
                     {albumResults.map((album) => (
                       <Link href={`/album/${album.id}`} key={album.id}>
-                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between hover:bg-white/20 transition-colors duration-200">
-                          <div className="flex items-center overflow-hidden">
+                        <div className="border-b w-full flex items-center p-3 hover:bg-accent transition-colors">
+                          <div className="flex items-center overflow-hidden flex-1">
                             <img
                               src={album.coverArt || "/placeholder-album.png"}
                               alt={album.name}
-                              className="w-16 h-16 object-cover rounded-lg mr-4 flex-shrink-0"
+                              className="w-12 h-12 object-cover rounded-md mr-4 flex-shrink-0"
                             />
                             <div className="overflow-hidden">
-                              <h2 className="text-xl font-semibold truncate text-white">
+                              <h2 className="font-semibold truncate text-foreground">
                                 {album.name}
                               </h2>
-                              <p className="text-sm text-gray-300">
+                              <p className="text-sm text-muted-foreground">
                                 {album.artist}
                               </p>
                             </div>
@@ -112,24 +112,24 @@ export default function SearchPage() {
                   <h3 className="text-md font-semibold text-center mb-2">
                     Artists
                   </h3>
-                  <div className="grid grid-cols-1 gap-4">
+                  <div className="border-t">
                     {artistResults.map((artist) => (
                       <Link href={`/artist/${artist.id}`} key={artist.id}>
-                        <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4 flex items-center justify-between hover:bg-white/20 transition-colors duration-200">
-                          <div className="flex items-center overflow-hidden">
+                        <div className="border-b w-full flex items-center p-3 hover:bg-accent transition-colors">
+                          <div className="flex items-center overflow-hidden flex-1">
                             <img
                               src={
                                 artist.pictureUrl || "/placeholder-artist.png"
                               }
                               alt={artist.name}
-                              className="w-16 h-16 object-cover rounded-full mr-4 flex-shrink-0"
+                              className="w-12 h-12 object-cover rounded-full mr-4 flex-shrink-0"
                             />
                             <div className="overflow-hidden">
-                              <p className="text-xl font-semibold truncate text-white">
+                              <p className="font-semibold truncate text-foreground">
                                 {artist.name}
                               </p>
-                              <p className="flex items-center text-sm text-gray-300 space-x-2">
-                                {artist.genre}
+                              <p className="text-sm text-muted-foreground">
+                                Artist
                               </p>
                             </div>
                           </div>
