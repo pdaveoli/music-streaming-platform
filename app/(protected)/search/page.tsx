@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SearchPageData } from "@/app/client-actions";
-import type { Album, Artist, Song } from "@/app/client-actions";
+import type { Album, Artist, Playlist, Song } from "@/app/client-actions";
 import { SongList } from "@/components/song-list";
 import Link from "next/link";
 
@@ -13,9 +13,11 @@ export default function SearchPage() {
   const [albumResults, setAlbumResults] = useState<Album[]>([]);
   const [artistResults, setArtistResults] = useState<Artist[]>([]);
   const [trackResults, setTrackResults] = useState<Song[]>([]);
+  const [playlistResults, setPlaylistResults] = useState<Playlist[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [artists, setArtists] = useState<Artist[]>([]);
   const [tracks, setTracks] = useState<Song[]>([]);
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
 
   // get albums, artists, and tracks
   useEffect(() => {
@@ -25,6 +27,7 @@ export default function SearchPage() {
         setAlbums(data.albums || []);
         setArtists(data.artists || []);
         setTracks(data.songs || []);
+        setPlaylists(data.playlists || []);
       }
     };
     loadItems();
@@ -53,6 +56,13 @@ export default function SearchPage() {
         track.artist.toLowerCase().includes(query)
     );
     setTrackResults(tracksRes);
+
+    const playlistRes = playlists.filter(
+      (playlist) =>
+        playlist.name.toLowerCase().includes(query) ||
+        playlist.description.toLowerCase().includes(query)
+    );
+    setPlaylistResults(playlistRes);
   };
   return (
     <div className="flex flex-col items-center min-h-screen p-4">
@@ -139,15 +149,69 @@ export default function SearchPage() {
                   </div>
                 </div>
               )}
-              {trackResults.length > 0 && (
+              {playlistResults.length > 0 && (
                 <div>
                   <h3 className="text-md font-semibold mb-2 text-center">
-                    Tracks
+                    Playlists
                   </h3>
-                  {/* SongList doesn't need extra wrappers like ul/li */}
-                  <SongList songs={trackResults} hideControls />
+                  <div className="border-t">
+                    {playlistResults.map((playlist) => (
+                      <Link
+                        href={`/playlists/${playlist.id}`}
+                        key={playlist.id}
+                      >
+                        <div className="border-b w-full flex items-center p-3 hover:bg-accent transition-colors">
+                          <div className="flex items-center overflow-hidden flex-1">
+                            <img
+                              src={
+                                playlist.coverArt || "/placeholder-playlist.png"
+                              }
+                              alt={playlist.name}
+                              className="w-12 h-12 object-cover rounded-md mr-4 flex-shrink-0"
+                            />
+                            <div className="overflow-hidden">
+                              <h2 className="font-semibold truncate text-foreground">
+                                {playlist.name}
+                              </h2>
+                              <p className="text-sm text-muted-foreground truncate">
+                                {playlist.description}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>
+                    ))}
+                    {trackResults.length > 0 && (
+                      <div>
+                        <h3 className="text-md font-semibold mb-2 text-center">
+                          Tracks
+                        </h3>
+                        {/* SongList doesn't need extra wrappers like ul/li */}
+                        <SongList songs={trackResults} hideControls />
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
+            </div>
+            <div className="text-center text-sm text-gray-500 mt-8">
+              Found{" "}
+              {albumResults.length +
+                artistResults.length +
+                trackResults.length +
+                playlistResults.length}{" "}
+              results
+            </div>
+            <div className="text-center text-sm text-gray-500 mt-2">
+              {albumResults.length === 0 &&
+                artistResults.length === 0 &&
+                trackResults.length === 0 &&
+                playlistResults.length === 0 &&
+                "No results found."}
+            </div>
+            <div className="text-center text-sm text-gray-500 mt-2">
+              Tip: You can search by album name, artist name, track title, or
+              playlist name/description.
             </div>
           </>
         ) : (

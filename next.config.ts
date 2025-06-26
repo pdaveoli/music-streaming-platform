@@ -28,7 +28,32 @@ const nextConfig: NextConfig = {
         hostname: "smtdqezdamcycolojywa.supabase.co",
         port: "",
         pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.discordapp.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "cdn.pixabay.com",
+        port: "",
+        pathname: "/**",
       }
+      
       
     ],
   },

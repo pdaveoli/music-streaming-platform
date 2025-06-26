@@ -249,20 +249,35 @@ export async function getAlbums() {
     
     return data;
 }
+export async function getPublicPlaylists(): Promise<Playlist[]> {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+        .from("playlists")
+        .select("*")
+        .eq("public", 1);
 
+    if (error) {
+        console.error("Error fetching public playlists:", error);
+        return [];
+    }
+
+    return data;
+}
 
 export async function SearchPageData() : Promise<{
   albums: Album[];
   songs: Song[];
   artists: Artist[];
+  playlists: Playlist[];
 }> {
 
     
     let albums = await getAlbums();
     let songs = await getSongs();
     let artists = await getArtists();
+    let playlists = await getPublicPlaylists();
 
-  return Promise.resolve({ albums: albums ? albums : [], songs: songs ? songs : [], artists: artists ? artists : [] });
+  return Promise.resolve({ albums: albums ? albums : [], songs: songs ? songs : [], artists: artists ? artists : [], playlists: playlists ? playlists : [] });
 }
 
 export async function getUserEditablePlaylists(userId: string): Promise<Playlist[]> {

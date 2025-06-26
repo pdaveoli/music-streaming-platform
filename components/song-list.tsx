@@ -8,6 +8,7 @@ import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuSeparator,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import {
@@ -130,9 +131,44 @@ export function SongList({
   };
 
   const handleSelectPlaylist = async (playlistId: string) => {
-    if (!songToAdd) return;
-
     const supabase = createClient();
+    
+    if (!songToAdd) {
+      // Add playlist, not song
+      const { data: playlist, error: fetchError } = await supabase
+        .from("playlists")
+        .select("songs")
+        .eq("id", playlistId)
+        .single();
+      if (fetchError || playlist === null) {
+        toast.error("Could not find the selected playlist.");
+        return;
+      }
+
+      // Add all the current songs to the playlist
+      const currentSongs = playlist.songs || [];
+      // Make sure the new songs don't already exist in the playlist
+      let newSongs = songs.map(song => song.id);
+      newSongs = newSongs.filter(songId => !currentSongs.includes(songId));   
+      const updatedSongs = [...new Set([...currentSongs, ...newSongs])]; // Combine and remove duplicates
+      
+      
+
+      const { error: updateError } = await supabase
+        .from("playlists")
+        .update({ songs: updatedSongs })
+        .eq("id", playlistId);
+
+      if (updateError) {
+        toast.error("Failed to add songs to the playlist.");
+      } else {
+        toast.success(`Added ${newSongs.length} songs to the playlist!`);
+        setIsAddToPlaylistOpen(false); // Close the dialog on success
+      }
+      return;
+    }
+      
+
     // First, get the current list of songs in the playlist
     const { data: playlistData, error: fetchError } = await supabase
       .from("playlists")
@@ -168,6 +204,24 @@ export function SongList({
     }
   };
 
+  const handleAddToPlaylistFromPlaylist = async () => {
+      if (songs.length === 0) {
+        toast("No songs available to add to the playlist");
+        return;
+      }
+      setIsAddToPlaylistOpen(true);
+      setIsLoadingPlaylists(true);
+      try {
+        const playlists = await getUserEditablePlaylists(userId);
+        setUserPlaylists(playlists);
+      } catch (error) {
+        toast.error("Failed to load your playlists.");
+        console.error(error);
+      } finally {
+        setIsLoadingPlaylists(false);
+      }
+  };
+
   return (
     <>
       <div className="w-full">
@@ -197,7 +251,9 @@ export function SongList({
                 <DropdownMenuItem onClick={handleShuffleAll}>
                   Shuffle All
                 </DropdownMenuItem>
-                <DropdownMenuItem>Add to Playlist</DropdownMenuItem>
+                <DropdownMenuItem onClick={handleAddToPlaylistFromPlaylist}>
+                  Add to Playlist
+                  </DropdownMenuItem>
                 {onDeletePlaylist && (
                   <>
                     <DropdownMenuSeparator />
@@ -270,6 +326,17 @@ export function SongList({
                   >
                     Add to Playlist
                   </ContextMenuItem>
+                  {onRemoveFromPlaylist && (
+                    <>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem
+                      className="text-red-500 focus:text-red-500 focus:bg-red-100 dark:focus:bg-red-900/40"
+                      onClick={() => onRemoveFromPlaylist(song)}
+                    >
+                      Remove from Playlist
+                    </ContextMenuItem>
+                    </>
+                  )}
                 </ContextMenuContent>
               </ContextMenu>
             </div>

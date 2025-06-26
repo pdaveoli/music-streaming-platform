@@ -410,7 +410,7 @@ export default function PlaylistPage(props: PageProps) {
         alt={playlist.name}
         width={300}
         height={300}
-        className="rounded-lg mb-4 w-128 h-128 object-cover shadow-lg"
+        className="rounded-lg mb-4 w-128 h-128 aspect-square object-cover shadow-lg"
       />
       <h1 className="text-4xl font-bold mb-4">{playlist.name}</h1>
       <div className="max-w-2xl mb-2">
@@ -453,16 +453,17 @@ export default function PlaylistPage(props: PageProps) {
             <input
              type="url"
               defaultValue={playlist.coverArt}
-              placeholder="Cover Art URL (128x128) (sources: pintrest)"
-              className="border p-2 rounded mb-2 w-full"
+              placeholder="Cover Art URL (128x128)"
+              className="border p-2 rounded w-full"
               name="coverArt"
               
             />
-            
+            <span className="text-gray-500">Accepted websites (google, pinterest, unsplash, discord, pixabay)</span>
+
             <textarea
               defaultValue={playlist.description}
               placeholder="Description goes here"
-              className="border p-2 rounded w-full"
+              className="border p-2 rounded w-full mt-2"
               name="description"
             />
             <Select

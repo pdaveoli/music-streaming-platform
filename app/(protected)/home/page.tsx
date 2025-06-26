@@ -42,6 +42,7 @@ export default function HomePage() {
       if (userError) {
         console.error("Error fetching user data:", userError);
         toast.error("Failed to fetch user data");
+        redirect("/account");
       }
       setUserDetails(userData); // Set userDetails, even if null
 
