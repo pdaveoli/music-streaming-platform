@@ -82,7 +82,7 @@ export function SignUpForm({
     else if (!/[0-9]/.test(value)) {
       setPasswordError("Password must contain at least one number");
     }
-    else if (!/[!@#$%^&*(),.?":{}|<>]/.test(value)) {
+    else if (!/[£!@#$%^&*(),.?":{}|<>]/.test(value)) {
       setPasswordError("Password must contain at least one special character");
     } else {
       setPasswordError(null);

@@ -83,7 +83,7 @@ export default function AlbumPage(props: PageProps) {
     };
 
     loadData();
-  }, []); // Remove props.params from dependency array
+  }, []);
 
   // Handle the toggle callback from SaveButton
   const handleSaveToggle = (newSavedState: boolean) => {

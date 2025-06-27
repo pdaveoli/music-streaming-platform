@@ -63,6 +63,7 @@ export default function PlaylistPage(props: PageProps) {
   const [filteredSongs, setFilteredSongs] = useState<Song[]>([]);
   const [denied, setDenied] = useState(false);
   const [visibility, setVisibility] = useState<string>("private");
+  const [isUsersPlaylist, setIsUsersPlaylist] = useState<boolean>(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -121,6 +122,9 @@ export default function PlaylistPage(props: PageProps) {
             window.location.href = "/home";
             return;
           }
+          setIsUsersPlaylist(false);
+        } else {
+          setIsUsersPlaylist(true);
         }
 
         // Load user's saved songs
@@ -173,24 +177,6 @@ export default function PlaylistPage(props: PageProps) {
     }
   };
 
-  const handleShuffleAll = () => {
-    // Load all songs into the audio context and shuffle them
-    if (songs.length === 0) {
-      toast("No songs available to shuffle");
-      return;
-    }
-    loadTracks([]);
-    changeShuffle(false);
-    loadTracks(songs);
-    changeShuffle(true);
-    playTrack(1);
-  };
-
-  const handleAddToQueue = (song: Song, next: boolean) => {
-    addToQueue(song, next);
-    // Optionally, you can show a toast or notification here to confirm the action
-    toast("Added to queue");
-  };
   const addToPlaylist = async (song: Song) => {
     // add song to playlist
     console.log("Adding song to playlist:", song);
@@ -258,7 +244,7 @@ export default function PlaylistPage(props: PageProps) {
   };
 
   const editDetails = async (event: React.FormEvent<HTMLFormElement>) => {
-    if (!playlist) {
+    if (!playlist || !isUsersPlaylist) {
       toast.error("Playlist not found.");
       return;
     }
@@ -305,7 +291,7 @@ export default function PlaylistPage(props: PageProps) {
 
   const removeSong = async (songId: string) => {
     console.log("Removing song with ID:", songId);
-    if (!playlist || !playlist.songs) {
+    if (!playlist || !playlist.songs || !isUsersPlaylist)  {
       console.error("Playlist or songs not found");
       return;
     }
@@ -339,7 +325,7 @@ export default function PlaylistPage(props: PageProps) {
   };
 
   const deletePlaylist = async () => {
-    if (!playlist) {
+    if (!playlist || !isUsersPlaylist) {
       toast.error("Playlist not found.");
       return;
     }
@@ -431,14 +417,22 @@ export default function PlaylistPage(props: PageProps) {
         </div>
       )}
       <div className="flex gap-4">
-        <Button
-          onClick={() => setShowEditPlaylist(!showEditPlaylist)}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
-        >
-          Edit Playlist
-        </Button>
+        {isUsersPlaylist ? (
+          <Button
+            onClick={() => setShowEditPlaylist(!showEditPlaylist)}
+            className="bg-blue-500 text-white px-4 py-2 rounded"
+          >
+            Edit Playlist
+          </Button>
+        ) : (
+          <Button
+            className="bg-green-500 text-white px-4 py-2 rounded"
+          >
+            Save to Library
+          </Button>
+        )}
       </div>
-      {showEditPlaylist && (
+      {showEditPlaylist && isUsersPlaylist && (
         <div className="mt-4">
           <h2 className="text-2xl font-semibold mb-2">Edit Playlist</h2>
           <form className="" onSubmit={editDetails}>
@@ -501,7 +495,12 @@ export default function PlaylistPage(props: PageProps) {
           <>
             
             <ul className="space-y-2">
-              <SongList songs={songs} onAddSong={addSongMenu} onDeletePlaylist={() => setShowDeleteConfirmation(true)} onRemoveFromPlaylist={(song) => setSongToRemove(song)} />
+              {isUsersPlaylist ? (
+                   <SongList songs={songs} onAddSong={addSongMenu} onDeletePlaylist={() => setShowDeleteConfirmation(true)} onRemoveFromPlaylist={(song) => setSongToRemove(song)} />
+              ) : (
+                   <SongList songs={songs} />
+              )}
+
             </ul>
           </>
         ) : (

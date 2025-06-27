@@ -295,3 +295,66 @@ export async function getUserEditablePlaylists(userId: string): Promise<Playlist
     return data;
 }
 
+export async function getArtistById(id: string): Promise<Artist | null> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from("artists")
+        .select("*")
+        .eq("id", id)
+        .single();
+
+    if (error) {
+        console.error("Error fetching artist:", error);
+        return null;
+    }
+
+    return data;
+}
+
+export async function getAlbumsFromArtist(artistName: string): Promise<Album[]> {
+    if (artistName === "") {
+        console.warn("Artist name is empty, returning empty album list.");
+        return [];
+    }
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from("albums")
+        .select("*")
+        .eq("artist", artistName);
+
+    if (error) {
+        console.error("Error fetching albums from artist:", error);
+        return [];
+    }
+
+    // Run through each item in data and get the album relating to the id
+    if (!data || data.length === 0) {
+        console.warn("No albums found for artist with ID:", artistName);
+        return [];
+    }
+
+
+    return data;
+}
+
+export async function getSongsFromArtist(artistName: string): Promise<Song[]> {
+    const supabase = createClient();
+    const { data, error } = await supabase
+        .from("songs")
+        .select("*")
+        .eq("artist", artistName);
+
+    if (error) {
+        console.error("Error fetching songs from artist:", error);
+        return [];
+    }
+
+    if (!data || data.length === 0) {
+        console.warn("No songs found for artist with name:", artistName);
+        return [];
+    }
+
+    
+
+    return data;
+}
