@@ -72,7 +72,15 @@ export default async function LibraryPage() {
         <CreatePlaylistButton />
       </div>
       <div className="max-w-4xl w-full flex flex-col items-center">
-        <PlaylistList playlists={playlists} />
+        {playlists !== null && playlists.length > 0 && (
+          <>
+          <PlaylistList playlists={playlists} />
+          <p className="text-gray-600 mb-4">
+            You have {playlists.length} saved playlists.
+          </p>
+          </>
+        )}
+        
       </div>
       {playlists.length === 0 && (
         <div className="justify-center items-center text-center p-4">
