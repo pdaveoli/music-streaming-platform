@@ -260,6 +260,11 @@ export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
     console.log("getSavedPlaylists: Query error:", error);
     let playlists : Playlist[] = [];
     
+    if (data[0].playlists === null || data[0].playlists.length === 0) {
+        console.log("No playlists found for user:", userId);
+        return [];
+    }
+
     for (const playlistId of data[0].playlists) {
         const playlist = await getPlaylistById(playlistId);
         if (playlist) {
