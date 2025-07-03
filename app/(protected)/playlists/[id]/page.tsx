@@ -123,7 +123,7 @@ export default function PlaylistPage(props: PageProps) {
             return;
           }
           setIsUsersPlaylist(false);
-        } else if (playlistData.public === 1 || user.id !== playlistData.userId) {
+        } else if (playlistData.public === 1 && user.id !== playlistData.userId) {
           setIsUsersPlaylist(false);
         } else {
           setIsUsersPlaylist(true);
