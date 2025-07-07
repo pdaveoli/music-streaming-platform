@@ -9,17 +9,8 @@ import {
   getSongById,
   getSavedSongs,
 } from "@/app/client-actions";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Ellipsis, Eye, Play, Shuffle, Lock } from "lucide-react";
-import { toast } from "sonner";
-import { useAudio } from "@/context/AudioContext";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "@/components/ui/context-menu";
+
+// UI imports
 import {
   AlertDialog,
   AlertDialogAction,
@@ -31,24 +22,23 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-
+} from "@/components/ui/select";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Eye, Lock } from "lucide-react";
+import { toast } from "sonner";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 import { SongList } from "@/components/song-list";
 
+/// <summary>
+/// PlaylistPage component that displays the details of a specific playlist.
+/// It fetches the playlist data, including its songs, and allows users to interact with the playlist.
+/// </summary>
 export default function PlaylistPage(props: PageProps) {
   const [playlist, setPlaylist] = useState<Playlist | null>(null);
   const [loading, setLoading] = useState(true);
@@ -58,13 +48,15 @@ export default function PlaylistPage(props: PageProps) {
   const [showEditPlaylist, setShowEditPlaylist] = useState(false);
   const [userSavedSongs, setUserSavedSongs] = useState<Song[]>([]);
   const [songToRemove, setSongToRemove] = useState<Song | null>(null);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<boolean>(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] =
+    useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredSongs, setFilteredSongs] = useState<Song[]>([]);
   const [denied, setDenied] = useState(false);
   const [visibility, setVisibility] = useState<string>("private");
   const [isUsersPlaylist, setIsUsersPlaylist] = useState<boolean>(false);
 
+  // Load user data and playlist details when the component mounts
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -80,7 +72,7 @@ export default function PlaylistPage(props: PageProps) {
           .from("playlists")
           .select("*")
           .eq("id", id)
-          .single(); // Using .single() is cleaner for fetching one record
+          .single();
 
         if (error) {
           throw new Error("Failed to fetch playlist");
@@ -123,7 +115,10 @@ export default function PlaylistPage(props: PageProps) {
             return;
           }
           setIsUsersPlaylist(false);
-        } else if (playlistData.public === 1 && user.id !== playlistData.userId) {
+        } else if (
+          playlistData.public === 1 &&
+          user.id !== playlistData.userId
+        ) {
           setIsUsersPlaylist(false);
         } else {
           setIsUsersPlaylist(true);
@@ -143,42 +138,11 @@ export default function PlaylistPage(props: PageProps) {
     loadData();
   }, [props.params]);
 
-  const {
-    loadTracks,
-    playTrack,
-    currentTrackIndex,
-    tracks,
-    togglePlayPause,
-    isPlaying,
-    addToQueue,
-    changeShuffle,
-    clearQueue,
-  } = useAudio(); // Call useAudio at the top level
-
-  const handlePlayClick = (song: Song, index: number) => {
-    // Use the audio context to play the song
-    const currentTrack = tracks[currentTrackIndex ?? -1];
-    if (currentTrack?.id === song.id) {
-      togglePlayPause();
-    } else {
-      // Create new track order: selected track first, then tracks after it, then tracks before it
-      const selectedTrack = songs[index];
-      const tracksAfterSelected = songs.slice(index + 1); // All tracks after the selected one
-      const tracksBeforeSelected = songs.slice(0, index); // All tracks before the selected one
-
-      // Combine: selected track + tracks after + tracks before
-      const newTracks = [
-        selectedTrack,
-        ...tracksAfterSelected,
-        ...tracksBeforeSelected,
-      ];
-
-      // Load the new tracks into the audio context
-      loadTracks(newTracks);
-      playTrack(0); // Play the first track (which is the selected one)
-    }
-  };
-
+  /// <summary>
+  /// Function to add a song to the playlist.
+  /// It checks if the song already exists in the playlist before adding it.
+  /// </summary>
+  /// <param name="song">The song to be added.</param>
   const addToPlaylist = async (song: Song) => {
     // add song to playlist
     console.log("Adding song to playlist:", song);
@@ -223,7 +187,7 @@ export default function PlaylistPage(props: PageProps) {
         })
         .eq("id", playlist.id);
 
-        if (error) {
+      if (error) {
         console.error("Error adding song to playlist:", error);
         toast.error("Failed to add song to playlist. Please try again.");
       } else {
@@ -241,16 +205,24 @@ export default function PlaylistPage(props: PageProps) {
         // Update the songs state to include the newly added song
         setSongs((prevSongs) => [...prevSongs, song]);
       }
-      
     }
   };
 
-  const editDetails = async (event: React.FormEvent<HTMLFormElement>) => {
+  /// <summary>
+  /// Function to edit the playlist details.
+  /// It updates the playlist name, description, cover art, and visibility.
+  /// </summary>
+  /// <param name="event">The form submission event.</param>
+  const editDetails = async (
+    event: React.FormEvent<HTMLFormElement>
+  ): Promise<void> => {
     if (!playlist || !isUsersPlaylist) {
       toast.error("Playlist not found.");
       return;
     }
     event.preventDefault();
+
+    // Get form data
     const formData = new FormData(event.currentTarget);
     let updatedName = formData.get("name") as string;
     if (!updatedName) updatedName = playlist?.name || "Untitled Playlist"; // Fallback to current name if empty
@@ -265,6 +237,7 @@ export default function PlaylistPage(props: PageProps) {
     const updatedVisibility = visibility === "public" ? 1 : 0;
 
     const supabase = createClient();
+    // Update the playlist with new details
     const { data, error } = await supabase
       .from("playlists")
       .update({
@@ -291,9 +264,14 @@ export default function PlaylistPage(props: PageProps) {
     }
   };
 
-  const removeSong = async (songId: string) => {
+  /// <summary>
+  /// Function to remove a song from the playlist.
+  /// It updates the playlist by removing the specified song ID.
+  /// </summary>
+  /// <param name="songId">The ID of the song to be removed.</param>
+  const removeSong = async (songId: string): Promise<void> => {
     console.log("Removing song with ID:", songId);
-    if (!playlist || !playlist.songs || !isUsersPlaylist)  {
+    if (!playlist || !playlist.songs || !isUsersPlaylist) {
       console.error("Playlist or songs not found");
       return;
     }
@@ -326,7 +304,12 @@ export default function PlaylistPage(props: PageProps) {
     }
   };
 
-  const deletePlaylist = async () => {
+  /// <summary>
+  /// Function to delete the playlist.
+  /// It removes the playlist from the database and redirects the user.
+  /// </summary>
+  /// <returns>Promise<void></returns>
+  const deletePlaylist = async (): Promise<void> => {
     if (!playlist || !isUsersPlaylist) {
       toast.error("Playlist not found.");
       return;
@@ -347,7 +330,12 @@ export default function PlaylistPage(props: PageProps) {
     }
   };
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
+  /// <summary>
+  /// Search handler for filtering songs in the add song modal.
+  /// It updates the search query and filters the songs based on the query.
+  /// </summary>
+  /// <param name="event">The input change event.</param>
+  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>): void => {
     const query = event.target.value.toLowerCase();
     setSearchQuery(query);
     if (query) {
@@ -360,7 +348,12 @@ export default function PlaylistPage(props: PageProps) {
     }
   };
 
-  const addSongMenu = () => {
+  /// <summary>
+  /// Function to toggle the add song modal.
+  /// It resets the search query and filtered songs when opening the modal.
+  /// </summary>
+  /// <returns>void</returns>
+  const addSongMenu = (): void => {
     // toggle the add song modal
     setShowAddSong(!showAddSong);
     if (!showAddSong) {
@@ -375,6 +368,7 @@ export default function PlaylistPage(props: PageProps) {
     }
   };
 
+  // If loading or denied, show loading or denied message
   if (loading || denied) {
     return (
       <div className="flex flex-col items-center justify-center p-4 md:p-8 mx-auto w-full h-screen">
@@ -383,6 +377,7 @@ export default function PlaylistPage(props: PageProps) {
     );
   }
 
+  // If no playlist found, show no playlist message
   if (!playlist) {
     return (
       <div className="flex flex-col items-center justify-center p-4 md:p-8 mx-auto w-full h-screen">
@@ -393,6 +388,7 @@ export default function PlaylistPage(props: PageProps) {
 
   return (
     <div className="flex flex-col items-center justify-center p-4 md:p-8 mx-auto w-full min-h-screen">
+      {/* Playlist details section */}
       <Image
         src={playlist.coverArt || "/default-playlist-image.png"}
         alt={playlist.name}
@@ -407,6 +403,7 @@ export default function PlaylistPage(props: PageProps) {
           truncateLength={300}
         />
       </div>
+      {/* Display playlist ownership */}
       {playlist.public === 1 ? (
         <div className="flex items-center justify-center mb-4 text-gray-500">
           <Eye className="mr-2 w-4 h-4" />
@@ -427,14 +424,13 @@ export default function PlaylistPage(props: PageProps) {
             Edit Playlist
           </Button>
         ) : (
-          <Button
-            className="bg-green-500 text-white px-4 py-2 rounded"
-          >
+          <Button className="bg-green-500 text-white px-4 py-2 rounded">
             Save to Library
           </Button>
         )}
       </div>
       {showEditPlaylist && isUsersPlaylist && (
+        // Edit playlist form
         <div className="mt-4">
           <h2 className="text-2xl font-semibold mb-2">Edit Playlist</h2>
           <form className="" onSubmit={editDetails}>
@@ -447,14 +443,15 @@ export default function PlaylistPage(props: PageProps) {
               required
             />
             <input
-             type="url"
+              type="url"
               defaultValue={playlist.coverArt}
               placeholder="Cover Art URL (128x128)"
               className="border p-2 rounded w-full"
               name="coverArt"
-              
             />
-            <span className="text-gray-500">Accepted websites (google, pinterest, unsplash, discord, pixabay)</span>
+            <span className="text-gray-500">
+              Accepted websites (google, pinterest, unsplash, discord, pixabay)
+            </span>
 
             <textarea
               defaultValue={playlist.description}
@@ -462,6 +459,7 @@ export default function PlaylistPage(props: PageProps) {
               className="border p-2 rounded w-full mt-2"
               name="description"
             />
+            {/* Visibility Dropdown */}
             <Select
               value={visibility}
               onValueChange={(value) => setVisibility(value)}
@@ -470,11 +468,22 @@ export default function PlaylistPage(props: PageProps) {
                 <SelectValue placeholder="Visibility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="public"><div className="flex items-center"><Eye className="mr-2 w-4 h-4" />Public</div></SelectItem>
-                <SelectItem value="private"><div className="flex items-center"><Lock className="mr-2 w-4 h-4" />Private</div></SelectItem>
+                <SelectItem value="public">
+                  <div className="flex items-center">
+                    <Eye className="mr-2 w-4 h-4" />
+                    Public
+                  </div>
+                </SelectItem>
+                <SelectItem value="private">
+                  <div className="flex items-center">
+                    <Lock className="mr-2 w-4 h-4" />
+                    Private
+                  </div>
+                </SelectItem>
               </SelectContent>
             </Select>
-            
+
+            {/* Button to open add song menu */}
             <Button
               type="button"
               onClick={addSongMenu}
@@ -482,6 +491,7 @@ export default function PlaylistPage(props: PageProps) {
             >
               Add Song
             </Button>
+            {/* Save changes button */}
             <Button
               type="submit"
               className="bg-green-500 text-white px-4 py-2 rounded ml-3"
@@ -491,25 +501,29 @@ export default function PlaylistPage(props: PageProps) {
           </form>
         </div>
       )}
+      {/* Playlist songs section */}
       <div className="mt-6 w-full max-w-screen">
         <h2 className="text-2xl font-semibold mb-4">Songs in Playlist</h2>
         {songs && songs.length > 0 ? (
           <>
-            
             <ul className="space-y-2">
               {isUsersPlaylist ? (
-                   <SongList songs={songs} onAddSong={addSongMenu} onDeletePlaylist={() => setShowDeleteConfirmation(true)} onRemoveFromPlaylist={(song) => setSongToRemove(song)} />
+                <SongList
+                  songs={songs}
+                  onAddSong={addSongMenu}
+                  onDeletePlaylist={() => setShowDeleteConfirmation(true)}
+                  onRemoveFromPlaylist={(song) => setSongToRemove(song)}
+                />
               ) : (
-                   <SongList songs={songs} />
+                <SongList songs={songs} />
               )}
-
             </ul>
           </>
         ) : (
           <p className="text-gray-500">No songs in this playlist.</p>
         )}
       </div>
-
+      {/* Delete Playlist Modal Window */}
       <AlertDialog
         open={!!songToRemove}
         onOpenChange={(isOpen) => !isOpen && setSongToRemove(null)}
@@ -603,7 +617,6 @@ export default function PlaylistPage(props: PageProps) {
                       key={song.id}
                       className="flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-700"
                     >
-                      
                       <div>
                         <div className="flex items-center">
                           <img

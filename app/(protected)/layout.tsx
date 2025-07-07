@@ -1,12 +1,14 @@
 import "../globals.css";
 import { AudioProvider } from "@/context/AudioContext"; // Adjust path as needed
 import PersistentAudioPlayerUI from "@/components/AudioPlayerUI"; // Your player UI component
-import Footer from "@/components/footer"; // Your footer component
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
-import AppSidebar from "@/components/sidebar"; // Import the Sidebar component
+import Footer from "@/components/footer"; 
+import AppSidebar from "@/components/sidebar";
 import { Toaster } from "@/components/ui/sonner"
 
-
+/// <summary>
+/// Layout for the music player and all the logged in pages of the application.
+/// This layout includes the audio player, sidebar, and footer.
+/// </summary>
 export default function ProtectedLayout({
   children,
 }: Readonly<{

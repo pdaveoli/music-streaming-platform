@@ -17,30 +17,28 @@ import {
   VolumeXIcon,
   ShuffleIcon,
   RepeatIcon,
-  Repeat1Icon,
-  MicVocalIcon, // For lyrics button
-  HomeIcon,
+  MicVocalIcon,
   ListMusicIcon,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
-import { useAudio } from "@/context/AudioContext"; // Adjust path as needed
+import { useAudio } from "@/context/AudioContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"; // If you use Avatar
 import type { Song } from "@/app/client-actions";
-// context menu components
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { toast } from "sonner"
-// Helper functions (assuming these are still defined or imported correctly)
-// If these are defined in another file, ensure they are imported.
-// For this example, I'll assume they are available in this scope or imported.
+import { toast } from "sonner";
+
+/// <summary>
+/// Parses lyrics from LRC format and returns an array of objects with time and text.
+/// </summary>
+/// <param name="lrcContent">The content of the LRC file as a string.</param>
+/// <returns>An array of objects, each containing a time in seconds and the corresponding lyric text.</returns>
 function parseLyrics(lrcContent: string): { time: number; text: string }[] {
   // Changed regex to use numbered capturing groups instead of named ones
   const regex = /^\[(\d{2}:\d{2}(?:\.\d{2,3})?)\](.*)/;
@@ -68,6 +66,13 @@ function parseLyrics(lrcContent: string): { time: number; text: string }[] {
   return output;
 }
 
+/// <summary>
+/// Finds the index of the current lyric based on the provided time.
+/// Returns the index of the lyric that is currently active, or -1 if before the first lyric.
+/// </summary>
+/// <param name="lyrics">An array of lyrics with their corresponding times.</param>
+/// <param name="time">The current time in seconds.</param>
+/// <returns>The index of the current lyric, or -1 if before the first lyric.</returns>
 function findCurrentLyricIndex(
   lyrics: { time: number; text: string }[],
   time: number
@@ -92,6 +97,7 @@ function findCurrentLyricIndex(
 }
 
 export default function PersistentAudioPlayerUI() {
+  // Import the audio context hook
   const {
     tracks,
     currentTrackIndex,
@@ -111,14 +117,11 @@ export default function PersistentAudioPlayerUI() {
     shuffle,
     repeat,
     removeFromQueue,
-    // loadTracks, // Assuming loadTracks is used elsewhere or not directly in UI
   } = useAudio();
 
   const [isMounted, setIsMounted] = useState(false);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-
-  // Lyrics specific state
   const [syncedLyrics, setSyncedLyrics] = useState<
     { time: number; text: string }[]
   >([]);
@@ -145,6 +148,12 @@ export default function PersistentAudioPlayerUI() {
       ? tracks[currentTrackIndex]
       : null;
 
+  /// <summary>
+  /// Formats a time in seconds into a string "MM:SS".
+  /// Handles NaN and infinite values by returning "0:00".
+  /// </summary>
+  /// <param name="time">Time in seconds.</param>
+  /// <returns>Formatted time string.</returns>
   const formatTime = (time: number) => {
     if (isNaN(time) || !isFinite(time)) return "0:00";
     const minutes = Math.floor(time / 60);
@@ -152,6 +161,15 @@ export default function PersistentAudioPlayerUI() {
     return `${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
   };
 
+  /// <summary>
+  /// Handles seeking in the audio player when the user clicks on the progress bar.
+  /// Calculates the new time based on the click position relative to the progress bar width.
+  /// </summary>
+  /// <param name="event">Mouse event from clicking on the progress bar.</param>
+  /// <remarks>
+  /// This function calculates the new time by determining the click position within the progress bar,
+  /// then sets the audio to that time using the seek function.
+  /// </remarks>
   const handleSeek = (event: MouseEvent<HTMLDivElement>) => {
     const progressBar = event.currentTarget;
     if (duration && isFinite(duration)) {
@@ -162,6 +180,11 @@ export default function PersistentAudioPlayerUI() {
     }
   };
 
+  /// <summary>
+  /// Handles volume changes when the user adjusts the volume slider.
+  /// Updates the audio element's volume and the muted state accordingly.
+  /// </summary>
+  /// <param name="event">Change event from the volume input slider.</param>
   const handleVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(event.target.value);
     setVolume(newVolume);
@@ -171,6 +194,14 @@ export default function PersistentAudioPlayerUI() {
     }
   };
 
+  /// <summary>
+  /// Toggles the mute state of the audio player.
+  /// If unmuting and the volume is currently 0, sets it to a default value (e.g., 0.5).
+  /// </summary>
+  /// <remarks>
+  /// This function checks if the audio element exists, toggles the muted state,
+  /// and adjusts the volume accordingly.
+  /// </remarks>
   const toggleMute = () => {
     if (audioRef.current) {
       const newMutedState = !isMuted;
@@ -184,6 +215,9 @@ export default function PersistentAudioPlayerUI() {
     }
   };
 
+  /// <summary>
+  /// Returns the appropriate volume icon based on the current volume and mute state.
+  /// </summary>
   const getVolumeIcon = () => {
     if (isMuted || volume === 0) return <VolumeXIcon className="w-5 h-5" />;
     if (volume < 0.5) return <Volume1Icon className="w-5 h-5" />;
@@ -245,12 +279,20 @@ export default function PersistentAudioPlayerUI() {
     // make the queue variable the tracks split from the currentTrackIndex
     queue = tracks.slice(currentTrackIndex + 1);
   }
+  /// <summary>
+  /// Toggles the visibility of the queue.
+  /// If the queue is currently shown, it will hide it.
+  /// If the queue is hidden, it will show the tracks after the current track.
+  /// </summary>
   const toggleQueue = () => {
     if (currentTrackIndex) queue = tracks.slice(currentTrackIndex + 1);
     // Toggle the queue visibility
     setShowQueue((prev) => !prev);
   };
 
+  /// <summary>
+  /// Handles the play button click for a specific song.
+  /// </summary>
   const handlePlayClick = (song: Song) => {
     // Find song in queue
     const songIndex = tracks.findIndex((track) => track.id === song.id);
@@ -278,6 +320,9 @@ export default function PersistentAudioPlayerUI() {
     }
   };
 
+  /// <summary>
+  /// Handles removing a song from the queue.
+  /// </summary>
   const handleRemoveFromQueue = (song: Song) => {
     // Check song is in queue
     const songIndex = queue.findIndex((track) => track.id === song.id);
@@ -288,10 +333,9 @@ export default function PersistentAudioPlayerUI() {
       toast("Removed from queue");
     }
   };
-  
 
+  // If not mounted, show a loading skeleton
   if (!isMounted) {
-    // Simplified loading skeleton for the player bar
     return (
       <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50 flex items-center justify-center min-h-[80px]">
         <p className="text-muted-foreground">Loading Player...</p>
@@ -299,6 +343,7 @@ export default function PersistentAudioPlayerUI() {
     );
   }
 
+  // If no tracks are available, show a message
   if (tracks.length === 0) {
     return (
       <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
@@ -306,12 +351,12 @@ export default function PersistentAudioPlayerUI() {
           <p className="flex-grow text-center text-sm text-muted-foreground">
             Select a track to play
           </p>
-          <div className="w-10 h-10"></div> {/* Spacer */}
+          <div className="w-10 h-10"></div>
         </div>
       </div>
     );
   }
-
+  // If there is an issue, and no current track, show a message
   if (!currentTrack) {
     return (
       <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
@@ -330,6 +375,7 @@ export default function PersistentAudioPlayerUI() {
     <div className="fixed top-0 right-0 md:left-64 left-0 bg-background/80 backdrop-blur-md border-b p-3 shadow-lg z-50">
       <div className="w-full flex items-center justify-between h-[60px]">
         <div className="flex items-center gap-3 justify-center flex-grow min-w-0 px-4">
+          {/* Song details */}
           <Image
             src={currentTrack.coverArt || "/music.svg"}
             alt={currentTrack.name || "Album Cover"}
@@ -350,6 +396,7 @@ export default function PersistentAudioPlayerUI() {
             >
               {currentTrack.artist}
             </p>
+            {/* Progress Slider */}
             <div
               className="w-full mt-1 group"
               onClick={handleSeek}
@@ -367,7 +414,7 @@ export default function PersistentAudioPlayerUI() {
           </div>
           <div className="flex items-center gap-1 sm:gap-2 flex-shrink-0">
             {" "}
-            {/* Adjusted gap for responsiveness */}
+            {/* Control Buttons */}
             <Button
               variant="ghost"
               size="icon"
@@ -395,7 +442,7 @@ export default function PersistentAudioPlayerUI() {
           </div>
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0">
             {" "}
-            {/* Adjusted gap */}
+            {/* Control Buttons */}
             <Button
               variant="ghost"
               size="icon"
@@ -423,6 +470,7 @@ export default function PersistentAudioPlayerUI() {
           </div>
         </div>
 
+        {/* Volume and Lyrics/Queue Controls */}
         <div className="flex items-center gap-2 flex-shrink-0">
           <Button
             variant="ghost"
@@ -463,7 +511,7 @@ export default function PersistentAudioPlayerUI() {
             </Button>
             {showLyrics && (
               <div
-                // Ensure this line uses backdrop-blur-* and not blur-*
+                // Lyric view container
                 className="absolute top-full right-0 mt-2 w-80 sm:w-96 md:w-[480px] 
                            bg-gray-800/50 dark:bg-black/40 backdrop-blur-lg 
                            border border-gray-700 dark:border-gray-600
@@ -528,6 +576,7 @@ export default function PersistentAudioPlayerUI() {
 
             {showQueue && (
               <div
+                // Queue view container
                 className="absolute top-full right-0 mt-2 w-80 sm:w-96 md:w-[480px]
                            bg-gray-800/50 dark:bg-black/40 backdrop-blur-lg 
                            border border-gray-700 dark:border-gray-600
@@ -545,6 +594,7 @@ export default function PersistentAudioPlayerUI() {
                 <div className="flex-grow p-4 sm:p-6 space-y-3 sm:space-y-4 overflow-y-auto custom-scrollbar">
                   {queue.map((track, index) => (
                     <div key={index}>
+                      {/* Context Menu for each track so you can right click -> play/remove */}
                       <ContextMenu>
                         <ContextMenuTrigger className="w-full flex items-center gap-3">
                           <Image
@@ -580,7 +630,6 @@ export default function PersistentAudioPlayerUI() {
                           >
                             Remove from Queue
                           </ContextMenuItem>
-                          
                         </ContextMenuContent>
                       </ContextMenu>
                     </div>

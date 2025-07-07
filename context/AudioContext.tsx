@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useRef, ReactNode, useEffect } from 'react';
-import type { Song } from '@/app/actions'; // Adjust the import path as needed
+import type { Song } from '@/app/client-actions';
 
 interface AudioContextType {
     tracks: Song[];

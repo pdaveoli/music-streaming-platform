@@ -1,7 +1,13 @@
+"use server";
 // Code modified from (https://vercel.com/docs/vercel-blob/client-upload?package-manager=npm) official documentation for blob server storage to fit with file uploads
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { NextResponse } from "next/server";
 
+/// <summery>
+/// POST route for handling file uploads.
+/// It processes the request body, generates a token for the upload,
+/// and returns a JSON response with the upload details.
+/// </summery>
 export async function POST(request: Request): Promise<NextResponse> {
     const body = (await request.json()) as HandleUploadBody;
 

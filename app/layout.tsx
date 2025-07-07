@@ -22,7 +22,9 @@ const geistSans = Geist({
   display: "swap",
   subsets: ["latin"],
 });
-
+/// <summary>
+/// Root layout for the application, providing global styles and theme support.
+/// </summary>
 export default function RootLayout({
   children,
 }: Readonly<{

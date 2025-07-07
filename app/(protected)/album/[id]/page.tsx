@@ -1,27 +1,32 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import type { PageProps } from "@/.next/types/app/page";
-import {
-  getAlbumById,
-  getSongById,
-  Song,
-  isAlbumSaved,
-} from "@/app/client-actions"; // Changed import
+import { getAlbumById, getSongById, Song, isAlbumSaved, Album } from "@/app/client-actions"; // Changed import
 import { SongList } from "@/components/song-list";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 import { createClient } from "@/lib/supabase/client";
 import SaveButton from "@/components/save-album-button";
 import { Skeleton } from "@/components/ui/skeleton";
 
+/// <summary>
+/// AlbumPage component that displays album details, songs, and save functionality.
+/// It fetches album data, songs, and user information from the server using client-side actions.
+/// </summary>
+/// <remarks>
+/// This component uses client-side rendering to fetch data securely.
+/// It handles loading states and errors gracefully.
+/// </remarks>
 export default function AlbumPage(props: PageProps) {
-  const [album, setAlbum] = useState<any>(null);
+  // State management for album details, songs, saved status, user ID, loading state, and album ID
+  const [album, setAlbum] = useState<Album | null>(null);
   const [songs, setSongs] = useState<Song[]>([]);
   const [saved, setSaved] = useState<boolean>(false);
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [albumId, setAlbumId] = useState<string>("");
 
+
+  // Fetch album data, songs, and user information when the component mounts
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -34,7 +39,7 @@ export default function AlbumPage(props: PageProps) {
         }
 
         setAlbumId(id);
-
+        // Fetch album data by ID
         const albumData = await getAlbumById(id);
 
         if (!albumData) {
@@ -91,6 +96,7 @@ export default function AlbumPage(props: PageProps) {
     setSaved(newSavedState);
   };
 
+  // If loading, show a loading state
   if (loading) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -100,6 +106,7 @@ export default function AlbumPage(props: PageProps) {
     );
   }
 
+  // If album not found, show a message
   if (album === null) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -117,6 +124,7 @@ export default function AlbumPage(props: PageProps) {
   return (
     <>
       <div className="flex flex-col items-center justify-center p-4 md:p-8 w-full mx-auto">
+        {/* Album Header */}
         <img
           src={album?.coverArt}
           alt={album?.name}
@@ -127,8 +135,6 @@ export default function AlbumPage(props: PageProps) {
         <p className="text-base text-gray-800 mb-4">
           {album?.genre} • {album?.metadata?.releaseDate}
         </p>
-
-        {/* Pass the onToggle callback */}
         <SaveButton
           albumId={albumId}
           isSaved={saved}
@@ -142,6 +148,7 @@ export default function AlbumPage(props: PageProps) {
           />
         </div>
       </div>
+      {/* Songs List */}
       <div className="flex flex-col items-center justify-center p-4 md:p-8 w-full pl-10 pr-10 mx-auto">
         <SongList songs={songs} />
       </div>

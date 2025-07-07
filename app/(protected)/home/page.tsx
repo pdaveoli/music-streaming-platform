@@ -2,22 +2,28 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  Album,
-  UserDetails,
-  getAlbumById,
-  getSavedAlbums,
-} from "@/app/client-actions";
+import { Album, UserDetails, getAlbumById, getSavedAlbums } from "@/app/client-actions";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CompassIcon, LibraryIcon } from "lucide-react";
 import AlbumList from "@/components/album-list";
 
+/// <summary>
+/// Home page component that displays the user's saved albums and provides navigation options.
+/// It fetches user details and saved albums from Supabase, handling errors and redirects as needed.
+/// </summary>
+/// <remarks>
+/// This component uses React hooks to manage state and side effects.
+/// It redirects to the login page if the user is not authenticated.
+/// </remarks>
 export default function HomePage() {
+  // Client-side state management for user details and saved albums
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [savedAlbums, setSavedAlbums] = useState<Album[] | null>(null);
 
+
+  // Fetch user details and saved albums on component mount
   useEffect(() => {
     const fetchUserDetails = async () => {
       const supabase = createClient();
@@ -69,10 +75,9 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col items-center justify-center h-screen w-full text-center p-4">
-      {/* Use a flex container for the heading to control truncation */}
+      {/* Welcome message */}
       <h1 className="flex items-baseline justify-center text-4xl font-bold mb-4 max-w-lg w-full">
         <span className="flex-shrink-0">Welcome back,&nbsp;</span>
-        {/* This span will truncate if the name is too long */}
         <span className="truncate">
           {userDetails ? userDetails.name : "..."}
         </span>
@@ -80,6 +85,7 @@ export default function HomePage() {
       <p className="text-lg text-gray-400">
         Your one-stop destination for all your music needs.
       </p>
+      {/* Quick Access buttons */}
       <div className="mt-8 flex space-x-4 flex-row justify-center">
         <Link href="/library">
           <Button variant="outline" size="sm">
@@ -96,6 +102,7 @@ export default function HomePage() {
         <p className="text-sm">
           Get back to listening to your favorite music, or discover new tracks!
         </p>
+        { /* Saved albums list */}
         <div className="max-w-4xl w-full mt-6">
         <AlbumList albums={savedAlbums ? savedAlbums : []} />
         </div>

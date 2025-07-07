@@ -10,13 +10,23 @@ import { SongList } from "@/components/song-list";
 import Image from "next/image";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 
+/// <summary>
+/// ArtistPage component that displays artist details, albums, and top songs.
+/// It fetches artist data, albums, and songs from the server using client-side actions.
+/// </summary>
+/// <remarks>
+/// This component uses client-side rendering to fetch data securely.
+/// It handles loading states and errors gracefully.
+/// </remarks>
 export default function ArtistPage(props: PageProps) {
 
+    // Client-side state management
     const [artist, setArtist] = useState<Artist | null>(null);
     const [albums, setAlbums] = useState<Album[] | null>([]);
     const [songs, setSongs] = useState<Song[] | null>([]);
     const [loading, setLoading] = useState(true);
 
+    // Fetch artist data, albums, and songs when the component mounts
     useEffect(() => {
         const loadData = async() => {
             try {
@@ -25,7 +35,7 @@ export default function ArtistPage(props: PageProps) {
                     window.location.href = "/home";
                     return;
                 }
-
+                // Fetch artist data by ID
                 const artistData = await getArtistById(id);
                 if (!artistData) {
                     setArtist(null);
@@ -33,7 +43,7 @@ export default function ArtistPage(props: PageProps) {
                     return;
                 }
                 setArtist(artistData);
-                // Use artistData directly instead of the state variable 'artist'
+                // Get albums and songs for the artist
                 const albumsData = await getAlbumsFromArtist(artistData.name);
                 setAlbums(albumsData);
                 const songsData = await getSongsFromArtist(artistData.name);
@@ -51,6 +61,7 @@ export default function ArtistPage(props: PageProps) {
         loadData();
     }, []);
 
+    // If loading, show a loading state
     if (loading) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">
@@ -63,6 +74,7 @@ export default function ArtistPage(props: PageProps) {
         );
     }
 
+    // If artist not found, show a message
     if (!artist) {
         return (
             <div className="flex flex-col items-center justify-center h-screen">

@@ -10,6 +10,9 @@ import { Label } from '@/components/ui/label'
 import { toast } from 'sonner'
 import { Skeleton } from '@/components/ui/skeleton'
 
+/// <summary>
+/// Avatar component that allows users to upload and display their profile picture.
+/// </summary>
 export default function Avatar({ uid, url, size, onUpload }) {
   const supabase = createClient()
   const [avatarUrl, setAvatarUrl] = useState(null)

@@ -1,6 +1,5 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SearchPageData } from "@/app/client-actions";
@@ -8,8 +7,14 @@ import type { Album, Artist, Playlist, Song } from "@/app/client-actions";
 import { SongList } from "@/components/song-list";
 import Link from "next/link";
 
+/// <summery>
+/// SearchPage component allows users to search for albums, artists, tracks, and playlists.
+/// It fetches data from the SearchPageData function and filters results based on user input.
+/// The results are displayed in categorized sections for albums, artists, tracks, and playlists.
+/// </summery>
 export default function SearchPage() {
-  const [searchQuery, setSearchQuery] = useState("");
+  // State variables to hold search query and results
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [albumResults, setAlbumResults] = useState<Album[]>([]);
   const [artistResults, setArtistResults] = useState<Artist[]>([]);
   const [trackResults, setTrackResults] = useState<Song[]>([]);
@@ -31,9 +36,13 @@ export default function SearchPage() {
       }
     };
     loadItems();
-  });
+  }, []);
 
-  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /// <summery>
+  /// handleSearch function updates the search query and filters results based on user input.
+  /// It updates the state variables for albumResults, artistResults, trackResults, and playlistResults.
+  /// </summery>
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>): void => {
     setSearchQuery(e.target.value);
     // Filter results based on search query
     const query = e.target.value.toLowerCase();
@@ -68,6 +77,7 @@ export default function SearchPage() {
     <div className="flex flex-col items-center min-h-screen p-4">
       <div className="w-full max-w-md mb-6">
         <div className="relative">
+          {/* Search Input */}
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
           <Input
             type="text"
@@ -89,6 +99,7 @@ export default function SearchPage() {
             <div className="space-y-6">
               {albumResults.length > 0 && (
                 <div>
+                  {/* Albums Section */}
                   <h3 className="text-md font-semibold text-center mb-2">
                     Albums
                   </h3>
@@ -119,6 +130,7 @@ export default function SearchPage() {
               )}
               {artistResults.length > 0 && (
                 <div>
+                  {/* Artists Section */}
                   <h3 className="text-md font-semibold text-center mb-2">
                     Artists
                   </h3>
@@ -151,6 +163,7 @@ export default function SearchPage() {
               )}
               {playlistResults.length > 0 && (
                 <div>
+                  {/* Playlists Section */}
                   <h3 className="text-md font-semibold mb-2 text-center">
                     Playlists
                   </h3>
@@ -183,6 +196,7 @@ export default function SearchPage() {
                     ))}
                     {trackResults.length > 0 && (
                       <div>
+                        {/* Tracks Section */}
                         <h3 className="text-md font-semibold mb-2 text-center">
                           Tracks
                         </h3>

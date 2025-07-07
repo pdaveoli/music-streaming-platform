@@ -1,15 +1,21 @@
+"use server";
 import { createClient } from "@/lib/supabase/server";
-import {
-  getSavedAlbums,
-  getAlbumsByIds,
-  getSavedPlaylists,
-} from "@/app/actions";
+import { getSavedAlbums, getAlbumsByIds, getSavedPlaylists } from "@/app/actions";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import AlbumList from "@/components/album-list";
 import { CreatePlaylistButton } from "@/components/create-playlist-button";
 import PlaylistList from "@/components/playlist-list";
 
+
+/// <summary>
+/// Library page component that displays the user's saved albums and playlists.
+/// It fetches user details, saved albums, and playlists from Supabase, handling redirects as needed.
+/// </summary>
+/// <remarks>
+/// This component uses server-side rendering to fetch data securely.
+/// It redirects to the login page if the user is not authenticated.
+/// </remarks>
 export default async function LibraryPage() {
   // Get the users saved albums from the database
   const supabase = await createClient();
@@ -24,6 +30,7 @@ export default async function LibraryPage() {
 
   const savedAlbums = await getSavedAlbums(userId);
 
+  // If the user has no saved albums, display a message and a link to discover albums
   if (!savedAlbums || savedAlbums.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -40,7 +47,7 @@ export default async function LibraryPage() {
   const playlists = await getSavedPlaylists(userId);
   console.log("Playlists:", playlists);
   console.log("Albums:", albums);
-
+  // If there is an error, display a message and a link to discover albums
   if (!albums || albums.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-screen">
@@ -56,6 +63,7 @@ export default async function LibraryPage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-4">
       <h1 className="text-2xl font-bold mb-4">Your Library</h1>
+      {/* Saved Albums View */}
       <p className="text-gray-600 mb-4">Saved Albums</p>
       <div className="max-w-4xl w-full flex flex-col items-center">
         <AlbumList albums={albums} />
@@ -66,7 +74,7 @@ export default async function LibraryPage() {
       <Link href="/discover" className="mt-4 text-blue-500 hover:underline">
         Discover More Albums
       </Link>
-
+      {/* Saved Playlists View */}
       <div className="flex items-center justify-between mt-8 mb-4">
         <p> Saved Playlists </p>
         <CreatePlaylistButton />

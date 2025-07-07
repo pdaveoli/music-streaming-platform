@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Play, Shuffle, Ellipsis } from "lucide-react";
-import type { Song } from "@/app/actions";
+import type { Song } from "@/app/client-actions";
 import { useAudio } from "@/context/AudioContext";
 import { toast } from "sonner";
 import {
@@ -26,8 +26,6 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 export function SongList({
   songs,
   hideControls,
-  onPlayClick,
-  onAddToQueue,
   onRemoveFromPlaylist,
   onAddSong,
   onDeletePlaylist,
@@ -46,10 +44,8 @@ export function SongList({
     currentTrackIndex,
     tracks,
     togglePlayPause,
-    isPlaying,
     addToQueue,
-    changeShuffle,
-    clearQueue,
+    changeShuffle
   } = useAudio();
   const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false);
   const [songToAdd, setSongToAdd] = useState<Song | null>(null);

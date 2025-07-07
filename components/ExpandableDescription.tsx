@@ -1,17 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { JSX, useState } from 'react';
 
 type ExpandableDescriptionProps = {
     text: string | undefined;
     truncateLength?: number;
 };
 
-export function ExpandableDescription({ text, truncateLength = 100 }: ExpandableDescriptionProps) {
+
+/// <summary>
+/// Component to display a description that can be expanded or truncated.
+/// If the text exceeds the specified length, it shows a "Read more" link.
+/// </summary>
+/// <param name="text">The description text to display.</param>
+/// <param name="truncateLength">The length at which to truncate the text. Default is 100 characters.</param>
+/// <returns>A component that displays the description with expand/collapse functionality.</returns>
+export function ExpandableDescription({ text, truncateLength = 100 }: ExpandableDescriptionProps): JSX.Element {
     const [isExpanded, setIsExpanded] = useState(false);
 
     if (!text) {
-        return null;
+        return (
+            <p className="text-sm text-gray-500">No description available.</p>
+        );
     }
 
     const toggleExpanded = () => {

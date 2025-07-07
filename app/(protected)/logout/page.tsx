@@ -1,8 +1,15 @@
 "use server";
-
 import { redirect } from 'next/navigation';
 import { createClient } from "@/lib/supabase/server";
 
+/// <summary>
+/// Logout route
+/// This route handles user logout by signing out from Supabase and redirecting to the home page.
+/// </summary>
+/// <remarks>
+/// This route is used to log out the user from the application.
+/// It signs out the user from Supabase and redirects them to the home page.
+/// </remarks>
 export default async function LogoutPage() {
     const supabase = await createClient();
     await supabase.auth.signOut();

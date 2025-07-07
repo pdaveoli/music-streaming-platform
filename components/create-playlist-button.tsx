@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { JSX, useState } from "react";
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { createPlaylist } from "@/app/client-actions";
 import { toast } from "sonner";
 
-export function CreatePlaylistButton() {
+/// <summary>
+/// Button to create a new playlist.
+/// Opens a dialog with a form to enter playlist details.
+/// On submission, it calls the server action to create the playlist.
+/// </summary>
+/// <returns>
+/// A button that opens a dialog for creating a new playlist.
+/// </returns>
+export function CreatePlaylistButton() : JSX.Element {
   const [open, setOpen] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {

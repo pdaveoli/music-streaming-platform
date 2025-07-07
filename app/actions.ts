@@ -1,13 +1,7 @@
 "use server";
-// This script is responsible for handling actions to do with databases
 import { createClient } from "@/lib/supabase/server";
-import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 
-// Types
-
-
-
+// Song type
 export interface Song {
     id: string;
     name: string;
@@ -16,10 +10,11 @@ export interface Song {
     duration: string; // Duration metadata text
     genre: string; // Genre metadata text
     url: string; // URL to the song file
-    lyricsUrl?: string; // Optional URL to the lyrics file
-    metadata: {} // Additional metadata as an object
+    lyricsUrl?: string; // URL to the lyrics file
+    metadata?: {} // Not used currently
 }
 
+// Album metadata type
 export interface AlbumMetadata {
     releaseDate: string; // Release date of the album
     label: string; // Record label of the album
@@ -58,6 +53,11 @@ export interface Artist {
     from: string
 }
 
+/// <summary>
+/// Gets all the albums by their IDs.
+/// </summary>
+/// <param name="ids">The IDs of the albums to retrieve.</param>
+/// <returns>An array of Album objects.</returns>
 export async function getAlbumsByIds(ids: string[]): Promise<Album[]> {
     let albums : Album[] = [];
     for (const id of ids) {
@@ -69,12 +69,27 @@ export async function getAlbumsByIds(ids: string[]): Promise<Album[]> {
     return albums;
 }
 
+/// <summary>
+/// Checks if an album is saved in the user's library.
+/// </summary>
+/// <param name="userId">The ID of the user.</param>
+/// <param name="albumId">The ID of the album to check.</param>
+/// <returns>True if the album is saved, false otherwise.</returns>
 export async function isAlbumSaved(userId: string, albumId: string): Promise<boolean> {
     const savedAlbums = (await getSavedAlbums(userId)).toString();
     return savedAlbums.includes(albumId.toString());
 }
 
-export async function saveAlbumToLibrary(userId: string, albumId: string) {
+/// <summary>
+/// Saves an album to the user's library.
+/// </summary>
+/// <param name="userId">The ID of the user.</param>
+/// <param name="albumId">The ID of the album to save.</param>
+/// <returns>Promise that resolves when the album is saved.</returns>
+/// <remarks>
+/// If the album is already saved, it will not be added again.
+/// </remarks>
+export async function saveAlbumToLibrary(userId: string, albumId: string) : Promise<void> {
     const savedAlbums = await getSavedAlbums(userId);
     const supabase = await createClient();
     
@@ -100,7 +115,16 @@ export async function saveAlbumToLibrary(userId: string, albumId: string) {
     console.log("Album saved to library successfully.");
 }
 
-export async function unsaveAlbumFromLibrary(userId: string, albumId: string) {
+/// <summary>
+/// Unsaves an album from the user's library.
+/// </summary>
+/// <param name="userId">The ID of the user.</param>
+/// <param name="albumId">The ID of the album to unsave.</param>
+/// <returns>Promise that resolves when the album is unsaved.</returns>
+/// <remarks>
+/// If the album is not saved, it will not be removed.
+/// </remarks>
+export async function unsaveAlbumFromLibrary(userId: string, albumId: string) : Promise<void> {
     const savedAlbums = await getSavedAlbums(userId);
     const supabase = await createClient();
     
@@ -126,12 +150,20 @@ export async function unsaveAlbumFromLibrary(userId: string, albumId: string) {
     console.log("Album unsaved from library successfully.");
 }
 
+/// <summary>
+/// Gets the saved albums for a user.
+/// </summary>
+/// <param name="userId">The ID of the user.</param>
+/// <returns>An array of album IDs saved by the user.</returns>
+/// <remarks>
+/// If the user has no saved albums, an empty array is returned.
+/// </remarks>
 export async function getSavedAlbums(userId: string): Promise<string[]> {
     const supabase = await createClient();
     
     console.log("getSavedAlbums: Looking for user with ID:", userId);
     
-    // Use array query instead of .single()
+    
     const { data, error } = await supabase
         .from("users")
         .select("library_albums")
@@ -154,6 +186,10 @@ export async function getSavedAlbums(userId: string): Promise<string[]> {
     return data[0]?.library_albums || [];
 }
 
+/// <summary>
+/// Gets all artists from the database.
+/// </summary>
+/// <returns>An array of Artist objects.</returns>
 export async function getArtists() {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -166,7 +202,11 @@ export async function getArtists() {
     return data;
 }
 
-export async function getSongs() {
+/// <summary>
+/// Gets all the songs from the database.
+/// </summary>
+/// <returns>An array of Song objects.</returns>
+export async function getSongs() : Promise<Song[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from("songs")
@@ -180,7 +220,11 @@ export async function getSongs() {
     return data;
 }
 
-export async function getAlbums() {
+/// <summary>
+/// Gets all the albums from the database.
+/// </summary>
+/// <returns>An array of Album objects.</returns>
+export async function getAlbums() : Promise<Album[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from("albums")
@@ -194,7 +238,12 @@ export async function getAlbums() {
     return data;
 }
 
-export async function getSongById(id: string) {
+/// <summary>
+/// Gets a song object by its ID
+/// </summary>
+/// <param name="id">The ID of the song to retrieve.</param>
+/// <returns>A Song object if found, otherwise null.</returns>
+export async function getSongById(id: string) : Promise<Song | null> {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from("songs")
@@ -209,7 +258,13 @@ export async function getSongById(id: string) {
     
     return data;
 }
-export async function getAlbumById(id: string) {
+
+/// <summary>
+/// Gets an album object by its ID
+/// </summary>
+/// <param name="id">The ID of the album to retrieve.</param>
+/// <returns>An Album object if found, otherwise null.</returns>
+export async function getAlbumById(id: string) : Promise<Album | null> {
     const supabase = await createClient();
     const { data, error } = await supabase
         .from("albums")
@@ -224,7 +279,11 @@ export async function getAlbumById(id: string) {
     
     return data;
 }
-
+/// <summary>
+/// Gets a playlist object by its ID
+/// </summary>
+/// <param name="id">The ID of the playlist to retrieve.</param>
+/// <returns>A Playlist object if found, otherwise null.</returns>
 export async function getPlaylistById(id: string): Promise<Playlist | null> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -241,7 +300,11 @@ export async function getPlaylistById(id: string): Promise<Playlist | null> {
     return data;
 }
 
-// Get users saved playlists
+/// <summary>
+/// Gets users saved playlists
+/// </summary>
+/// <param name="userId">The ID of the user whose saved playlists to retrieve.</param>
+/// <returns>An array of Playlist objects.</returns>
 export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
     const supabase = await createClient();
     const { data, error } = await supabase
@@ -260,11 +323,13 @@ export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
     console.log("getSavedPlaylists: Query error:", error);
     let playlists : Playlist[] = [];
     
+    // Last debug layer
     if (data[0].playlists === null || data[0].playlists.length === 0) {
         console.log("No playlists found for user:", userId);
         return [];
     }
 
+    // Convert playlist IDs to Playlist objects
     for (const playlistId of data[0].playlists) {
         const playlist = await getPlaylistById(playlistId);
         if (playlist) {
@@ -274,6 +339,10 @@ export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
     return playlists || [];    
 }
 
+/// <summary>
+/// Gets all playlists from the database that are marked public.
+/// </summary>
+/// <returns>An array of Playlist objects.</returns>
 export async function getPublicPlaylists(): Promise<Playlist[]> {
     const supabase = await createClient();
     const { data, error } = await supabase

@@ -2,6 +2,14 @@
 import { Album } from "@/app/actions";
 import { useRouter } from "next/navigation";
 
+/// <summary>
+/// AlbumList component displays a list of albums.
+/// Each album is clickable and navigates to the album details page.
+/// </summary>
+/// <remarks>
+/// This component is used to display a grid of albums with their cover art, name, and artist.
+/// It uses Next.js router for navigation.
+/// </remarks>
 export default function AlbumList ({ albums } : { albums: Album[]}) {
     const router = useRouter();
 

@@ -48,7 +48,11 @@ const userNavigationItems = [
     { href: '/logout', label: 'Log Out', icon: LogOutIcon },
 ];
 
-
+/// <summary>
+/// Sidebar component that displays navigation links and user profile.
+/// It includes a responsive design for mobile and desktop views.
+/// </summary>
+/// <returns>A sidebar with navigation links and user profile dropdown.</returns>
 export default function AppSidebar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
