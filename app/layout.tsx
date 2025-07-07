@@ -3,6 +3,8 @@ import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import "./globals.css";
 import Footer from "@/components/footer";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -11,7 +13,8 @@ const defaultUrl = process.env.VERCEL_URL
 export const metadata: Metadata = {
   metadataBase: new URL(defaultUrl),
   title: "FreeStream - Free and Open Source Music Streaming Platform",
-  description: "Stream your favorite music for free, with no ads and no limits. Join the FreeStream community today!",
+  description:
+    "Stream your favorite music for free, with no ads and no limits. Join the FreeStream community today!",
 };
 
 const geistSans = Geist({
@@ -28,14 +31,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${geistSans.className} antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          
-        >
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem>
           {children}
-                  </ThemeProvider>
+          <Analytics />
+          <SpeedInsights />
+        </ThemeProvider>
       </body>
     </html>
   );
