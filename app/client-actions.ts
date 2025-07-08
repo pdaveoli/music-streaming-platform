@@ -171,7 +171,7 @@ export async function getSavedSongs(userId: string): Promise<Song[]> {
   // loop through saved albums and get songs
   for (const albumId of savedAlbums) {
     const album = await getAlbumById(albumId);
-    if (album && album.songIds) {
+    if (album?.songIds) {
       const songs = await Promise.all(
         album.songIds.map(async (songId: string) => {
           return await getSongById(songId);
