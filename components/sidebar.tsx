@@ -76,7 +76,6 @@ export default function AppSidebar() {
       if (!user) {
         console.error("No user found, redirecting to login");
         redirect('/login');
-        return;
       }
 
       const { data: details, error: detailsError } = await supabase
@@ -87,7 +86,13 @@ export default function AppSidebar() {
 
       if (detailsError) {
         console.error("Error fetching user details:", detailsError);
-        return;
+        redirect("/auth/login");
+      }
+
+      if (!details?.name || !details?.date_of_birth) {
+        console.error("User details are incomplete, redirecting to welcome page");
+        toast.error("Please complete your profile setup.");
+        redirect('/welcome');
       }
 
       if (details) {
@@ -127,6 +132,7 @@ export default function AppSidebar() {
         <nav className="px-2 space-y-1">
           {mainNavigationItems.map((item) => {
             const isActive = pathname === item.href;
+            const disabled = userDetails === null || userDetails?.name === null || userDetails?.date_of_birth === null;
             return (
               <Button
                 key={item.label}
@@ -137,12 +143,20 @@ export default function AppSidebar() {
                     ? "bg-primary/10 text-primary hover:bg-primary/20" 
                     : "hover:bg-muted/50"
                 )}
+                disabled={disabled}
                 asChild
               >
-                <Link href={item.href} className="flex items-center gap-3">
-                  <item.icon className="h-5 w-5" />
-                  <span>{item.label}</span>
-                </Link>
+                {disabled ? (
+                  <span className="flex items-center gap-3 text-muted-foreground truncate overflow-hidden">
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </span>
+                ) : (
+                  <Link href={item.href} className="flex items-center gap-3">
+                    <item.icon className="h-5 w-5" />
+                    <span>{item.label}</span>
+                  </Link>
+                )}
               </Button>
             );
           })}
