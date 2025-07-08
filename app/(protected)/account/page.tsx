@@ -14,6 +14,13 @@ import type { User } from "@supabase/auth-js";
 import { properFilter } from "@/lib/utils";
 import { ExternalLink } from "lucide-react";
 import Link from "next/link";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 /// <summary>
 /// AccountPage component that allows users to view and update their account information.
@@ -118,112 +125,147 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <h1 className="text-2xl font-bold mb-4">Account Information</h1>
-      {user ? (
-        <>
-          <div className="max-w-2xl w-full shadow-md rounded-lg p-6">
-            {/* Editable Account details */}
-            <form onSubmit={updateDetails} className="mt-4">
-              <h2 className="text-xl font-semibold mb-4">Update Profile</h2>
-              <Avatar
-                uid={user.id}
-                url={avatarUrl}
-                size={64}
-                onUpload={(url: string) => setAvatarUrl(url)}
-              />
-              
-              <Label htmlFor="email" className="mb-2">
-                Email
-              </Label>
-              
-              <Input
-                id="email"
-                name="email"
-                value={user.email || ""}
-                className="mb-4"
-                disabled
-              />
-              <Label htmlFor="username" className="mb-2">
-                Username
-              </Label>
-              <div className="flex flex-row">
-              <Input
-                id="username"
-                name="username"
-                value={userDetails?.username || ""}
-                className="mb-4 mr-4"
-                disabled
-              />
-              <Button asChild><Link href="/account/change-username"><ExternalLink />Change</Link></Button>
-              </div>
-              <Label htmlFor="password" className="mb-2">
-                  Password
-                </Label>
-              <div className="flex flex-row">
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value="********" // Masked password
-                  className="mb-4"
-                  disabled
-                />
-                <Button asChild>
-                  <Link href="/account/change-password">
-                    <ExternalLink />Change
-                  </Link>
-                </Button>
-              </div>
-              <Label htmlFor="name" className="mb-2">
-                Name
-              </Label>
-              <Input
-                id="name"
-                name="name"
-                defaultValue={userDetails?.name || ""}
-                className="mb-4"
-                required
-              />
-              <Label htmlFor="bio" className="mb-2">
-                Bio
-              </Label>
-              <Textarea
-                id="bio"
-                name="bio"
-                defaultValue={userDetails?.bio || ""}
-                className="mb-4"
-                required
-              />
-              <Label htmlFor="date_of_birth" className="mb-2">
-                Date of Birth
-              </Label>
-              <Input
-                id="date_of_birth"
-                name="date_of_birth"
-                type="date"
-                defaultValue={userDetails?.date_of_birth || ""}
-                className="mb-4"
-                required
-                max={new Date().toISOString().split("T")[0]} // Prevent future dates
-                min={"1900-01-01"} // Prevent dates before 1900
-              />
-              <Label htmlFor="fav_genres" className="mb-2">
-                Favorite Genres
-              </Label>
-              <div className="mb-4">
-                <MultiSelectGenres
-                  selectedGenres={favouriteGenres}
-                  onChange={setFavouriteGenres}
-                />
-              </div>
-              <Button type="submit">Update Profile</Button>
-            </form>
-          </div>
-        </>
-      ) : (
-        <p>Loading user data...</p>
-      )}
+    <div className="flex max-w-[100vh_-_84px] justify-center min-h-screen py-8 px-4 overflow-x-hidden truncate overflow-y-auto ">
+      <div className="w-full max-w-2xl space-y-8">
+        <h1 className="text-3xl font-bold">Account Settings</h1>
+
+        {user ? (
+          <form onSubmit={updateDetails} className="space-y-8">
+            {/* Profile Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Profile</CardTitle>
+                <CardDescription>
+                  This is how others will see you on the site.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Profile Picture</Label>
+                  <Avatar
+                    uid={user.id}
+                    url={avatarUrl}
+                    size={80}
+                    onUpload={(url: string) => setAvatarUrl(url)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    defaultValue={userDetails?.name || ""}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bio">Bio</Label>
+                  <Textarea
+                    id="bio"
+                    name="bio"
+                    defaultValue={userDetails?.bio || ""}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Security Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Security</CardTitle>
+                <CardDescription>Manage your account security.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email</Label>
+                  <Input id="email" value={user.email || ""} disabled />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="username">Username</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-grow min-w-0">
+                      <Input
+                        id="username"
+                        value={userDetails?.username || ""}
+                        disabled
+                      />
+                    </div>
+                    <Button asChild variant="outline">
+                      <Link
+                        href="/account/change-username"
+                        className="flex items-center gap-2"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>Change</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="flex items-center gap-4">
+                    {/* This is the fix: adding min-w-0 allows the div to shrink */}
+                    <div className="flex-grow min-w-0">
+                      <Input
+                        id="password"
+                        type="password"
+                        value="********"
+                        disabled
+                      />
+                    </div>
+                    <Button asChild variant="outline">
+                      <Link
+                        href="/account/change-password"
+                        className="flex items-center gap-2"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                        <span>Change</span>
+                      </Link>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Details Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Details</CardTitle>
+                <CardDescription>
+                  Manage your personal details and preferences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="date_of_birth">Date of Birth</Label>
+                  <Input
+                    id="date_of_birth"
+                    name="date_of_birth"
+                    type="date"
+                    defaultValue={userDetails?.date_of_birth || ""}
+                    required
+                    max={new Date().toISOString().split("T")[0]}
+                    min={"1900-01-01"}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Favorite Genres</Label>
+                  <MultiSelectGenres
+                    selectedGenres={favouriteGenres}
+                    onChange={setFavouriteGenres}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Button type="submit" className="w-full">
+              Update Profile
+            </Button>
+          </form>
+        ) : (
+          <p>Loading user data...</p>
+        )}
+      </div>
     </div>
   );
 }

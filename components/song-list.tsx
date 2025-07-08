@@ -218,6 +218,41 @@ export function SongList({
       }
   };
 
+  if (songs.length === 0) {
+    return (
+      <div className="text-center p-6">
+        <p className="text-muted-foreground">No songs available.</p>
+        {!hideControls && onAddSong && (
+          <Button variant="outline" onClick={onAddSong}>
+            Add Songs
+          </Button>
+        )}
+      </div>
+    );
+  }
+
+  const songCount = songs.length || 0;
+  
+  const getTotalDuration = () => {
+    return songs.reduce((total, song) => {
+      const [minutes, seconds] = song.duration.split(":").map(Number);
+      return total + minutes * 60 + seconds;
+    }, 0);
+  };
+  
+  const totalDuration = getTotalDuration();
+
+  const formatDuration = (duration: number) => {
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration % 3600) / 60);
+    
+    // format HH:MM
+    if (hours > 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''} ${minutes.toString().padStart(2, '0')} minute${minutes > 1 ? 's' : ''}`;
+    }
+    return `${minutes} minute${minutes > 1 ? 's' : ''} ${(duration % 60).toString().padStart(2, '0')} second${(duration % 60) > 1 ? 's' : ''}`;
+  };
+
   return (
     <>
       <div className="w-full">
@@ -337,6 +372,11 @@ export function SongList({
               </ContextMenu>
             </div>
           ))}
+          {songs.length > 0 && (
+            <div className="flex justify-between items-center p-3 text-sm text-muted-foreground">
+              <span>{songCount} song{songCount !== 1 ? 's' : ''} &bull; {formatDuration(totalDuration)}</span>
+            </div>
+          )}
         </div>
       </div>
 
