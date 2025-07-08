@@ -22,7 +22,7 @@ export default function Page() {
             <Button
               asChild
               variant="link"
-              className="text-lg font-light rounded shadow hover:animate-pulse text-black dark:text-white"
+              className="text-lg font-light rounded shadow hover:animate-pulse  text-white"
             >
               <Link href="/auth/login">Log in</Link>
             </Button>
