@@ -3,8 +3,8 @@ import SongUpload from "@/components/upload-views/song-upload"
 import AlbumUpload from "@/components/upload-views/album-upload"
 import PlaylistUpload from "@/components/upload-views/playlist-upload"
 import ArtistUpload from "@/components/upload-views/artist-upload"
-import { Artist, Song, getSongs, getArtists } from "@/app/actions"
-
+import { getSongs, getArtists } from "@/app/actions"
+import { Artist, Song } from "@/app/types"
 export default async function UploaderPage() {
 
     const artists : Artist[] = await getArtists();

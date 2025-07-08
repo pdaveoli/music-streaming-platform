@@ -1,11 +1,10 @@
 "use client";
-
-import { ArrowRight } from "lucide-react";
 import { Button } from "../ui/button";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircleIcon } from "lucide-react";
 export function Hero() {
   // Animation variants for framer-motion
   const fadeInUp = {
@@ -47,7 +46,15 @@ export function Hero() {
           </Button>
         </div>
       </nav>
-
+      <div className="flex items-center justify-center w-full">
+      <Alert variant="destructive" className="w-full max-w-5xl mt-4">
+          <AlertTitle>User System Changes</AlertTitle>
+          <AlertCircleIcon />
+          <AlertDescription>
+            When you log in, you will be prompted to set a username. This username will be used to identify you in the system and will be unique across all users. There are also other fields that will require filling in. Sorry for any inconvenience this may cause, but this is a necessary change to improve the user experience and functionality of the platform.
+          </AlertDescription>
+        </Alert>
+      </div>
       {/* Main content area */}
       <div className="flex-grow container mx-auto grid grid-cols-1 md:grid-cols-2 items-center gap-8 p-6">
         {/* Left Column: Text Content */}

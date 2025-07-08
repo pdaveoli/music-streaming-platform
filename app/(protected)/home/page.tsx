@@ -2,12 +2,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Album, UserDetails, getAlbumById, getSavedAlbums } from "@/app/client-actions";
+import { getAlbumById, getSavedAlbums } from "@/app/client-actions";
 import { redirect } from "next/navigation";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { CompassIcon, LibraryIcon } from "lucide-react";
 import AlbumList from "@/components/album-list";
+import { UserDetails, Album } from "@/app/types";
 
 /// <summary>
 /// Home page component that displays the user's saved albums and provides navigation options.

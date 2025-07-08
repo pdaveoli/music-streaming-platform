@@ -26,7 +26,7 @@ import {
 } from 'lucide-react';
 import { createClient } from "@/lib/supabase/client"; 
 import { redirect } from 'next/navigation';
-import type { UserDetails } from '@/app/client-actions';
+import type { UserDetails } from '@/app/types';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils'; // For cleaner class name logic
 
@@ -44,6 +44,7 @@ const mainNavigationItems: NavItem[] = [
 ];
 
 const userNavigationItems = [
+    { href: '/profile', label: 'Profile', icon: UserIcon },
     { href: '/account', label: 'Account Settings', icon: SettingsIcon },
     { href: '/logout', label: 'Log Out', icon: LogOutIcon },
 ];
@@ -89,7 +90,7 @@ export default function AppSidebar() {
         redirect("/auth/login");
       }
 
-      if (!details?.name || !details?.date_of_birth) {
+      if (!details?.name || !details?.date_of_birth || !details?.username) {
         console.error("User details are incomplete, redirecting to welcome page");
         toast.error("Please complete your profile setup.");
         redirect('/welcome');
@@ -180,7 +181,7 @@ export default function AppSidebar() {
                   {userDetails?.name || 'Guest'}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {userEmail || '...'}
+                  {userDetails?.username || '...'}
                 </p>
               </div>
             </Button>

@@ -1,13 +1,13 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import type { PageProps } from "@/.next/types/app/page";
-import { getAlbumById, getSongById, Song, isAlbumSaved, Album } from "@/app/client-actions"; // Changed import
+import { getAlbumById, getSongById, isAlbumSaved } from "@/app/client-actions"; // Changed import
 import { SongList } from "@/components/song-list";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 import { createClient } from "@/lib/supabase/client";
 import SaveButton from "@/components/save-album-button";
 import { Skeleton } from "@/components/ui/skeleton";
-
+import type { Album, Song } from "@/app/types"; 
 /// <summary>
 /// AlbumPage component that displays album details, songs, and save functionality.
 /// It fetches album data, songs, and user information from the server using client-side actions.

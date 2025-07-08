@@ -2,13 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import type { PageProps } from "@/.next/types/app/page";
-import { getArtistById, getSongsFromArtist, getAlbumsFromArtist, Artist, Song, Album } from "@/app/client-actions";
+import { getArtistById, getSongsFromArtist, getAlbumsFromArtist } from "@/app/client-actions";
 import { toast } from "sonner";
 import Link from "next/link";
 import AlbumList from "@/components/album-list";
 import { SongList } from "@/components/song-list";
 import Image from "next/image";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
+import type { Artist, Album, Song } from "@/app/types";
 
 /// <summary>
 /// ArtistPage component that displays artist details, albums, and top songs.

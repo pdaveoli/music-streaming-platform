@@ -5,7 +5,6 @@ import React, {
   useEffect,
   useRef,
   MouseEvent,
-  ChangeEvent,
 } from "react";
 import {
   PlayIcon,
@@ -23,9 +22,8 @@ import {
 import Image from "next/image";
 import { useAudio } from "@/context/AudioContext";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import type { Song } from "@/app/client-actions";
+import type { Song } from "@/app/types";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -33,6 +31,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { toast } from "sonner";
+import { Slider } from "./ui/slider";
 
 /// <summary>
 /// Parses lyrics from LRC format and returns an array of objects with time and text.
@@ -185,8 +184,8 @@ export default function PersistentAudioPlayerUI() {
   /// Updates the audio element's volume and the muted state accordingly.
   /// </summary>
   /// <param name="event">Change event from the volume input slider.</param>
-  const handleVolumeChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(event.target.value);
+  const handleVolumeChange = (value : number[]) => {
+    const newVolume = value[0];
     setVolume(newVolume);
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
@@ -480,13 +479,12 @@ export default function PersistentAudioPlayerUI() {
           >
             {getVolumeIcon()}
           </Button>
-          <Input
-            type="range"
-            min="0"
-            max="1"
-            step="0.01"
-            value={isMuted ? 0 : volume}
-            onChange={handleVolumeChange}
+          <Slider
+            min={0}
+            max={1}
+            step={0.01}
+            defaultValue={[isMuted ? 0 : volume]}
+            onValueChange={handleVolumeChange}
             className="w-16 sm:w-20 h-1.5 accent-primary cursor-pointer"
             title="Volume"
           />

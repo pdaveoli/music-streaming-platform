@@ -6,12 +6,14 @@ import { redirect, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserDetails } from "@/app/client-actions";
+import { UserDetails } from "@/app/types";
 import { Textarea } from "@/components/ui/textarea";
 import Avatar from "./avatar";
 import { MultiSelectGenres } from "./multi-select-genres"; 
 import type { User } from "@supabase/auth-js";
-import { Filter } from "bad-words"; 
+import { properFilter } from "@/lib/utils";
+import { ExternalLink } from "lucide-react";
+import Link from "next/link";
 
 /// <summary>
 /// AccountPage component that allows users to view and update their account information.
@@ -91,10 +93,9 @@ export default function AccountPage() {
     let bio = formData.get("bio") as string;
     const dateOfBirth = formData.get("date_of_birth") as string;
     const supabase = createClient();
-    const filter = new Filter();
 
-    name = filter.clean(name); // Clean the name using bad-words filter
-    bio = filter.clean(bio); // Clean the bio using bad-words filter
+    name = properFilter(name); // Clean the name using bad-words filter
+    bio = properFilter(bio); // Clean the bio using bad-words filter
     
     // Update user details
     const { error } = await supabase
@@ -122,18 +123,6 @@ export default function AccountPage() {
       {user ? (
         <>
           <div className="max-w-2xl w-full shadow-md rounded-lg p-6">
-            {/* Account details (not editable) */}
-            <p className="mb-2">
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p className="mb-2">
-              <strong>Created At:</strong>{" "}
-              {new Date(user.created_at).toLocaleDateString()}
-            </p>
-            <p className="mb-2">
-              <strong>Last Sign In:</strong>{" "}
-              {new Date(user.last_sign_in_at ?? "").toLocaleDateString()}
-            </p>
             {/* Editable Account details */}
             <form onSubmit={updateDetails} className="mt-4">
               <h2 className="text-xl font-semibold mb-4">Update Profile</h2>
@@ -143,6 +132,49 @@ export default function AccountPage() {
                 size={64}
                 onUpload={(url: string) => setAvatarUrl(url)}
               />
+              
+              <Label htmlFor="email" className="mb-2">
+                Email
+              </Label>
+              
+              <Input
+                id="email"
+                name="email"
+                value={user.email || ""}
+                className="mb-4"
+                disabled
+              />
+              <Label htmlFor="username" className="mb-2">
+                Username
+              </Label>
+              <div className="flex flex-row">
+              <Input
+                id="username"
+                name="username"
+                value={userDetails?.username || ""}
+                className="mb-4 mr-4"
+                disabled
+              />
+              <Button asChild><Link href="/account/change-username"><ExternalLink />Change</Link></Button>
+              </div>
+              <Label htmlFor="password" className="mb-2">
+                  Password
+                </Label>
+              <div className="flex flex-row">
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  value="********" // Masked password
+                  className="mb-4"
+                  disabled
+                />
+                <Button asChild>
+                  <Link href="/account/change-password">
+                    <ExternalLink />Change
+                  </Link>
+                </Button>
+              </div>
               <Label htmlFor="name" className="mb-2">
                 Name
               </Label>

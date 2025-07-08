@@ -1,5 +1,5 @@
 "use client";
-import { Album } from "@/app/actions";
+import type { Album } from "@/app/types";
 import { useRouter } from "next/navigation";
 
 /// <summary>

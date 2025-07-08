@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Play, Shuffle, Ellipsis } from "lucide-react";
-import type { Song, Playlist } from "@/app/client-actions";
+import type { Song, Playlist } from "@/app/types";
 import { useAudio } from "@/context/AudioContext";
 import { toast } from "sonner";
 import {

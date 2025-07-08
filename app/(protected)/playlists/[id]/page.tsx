@@ -3,13 +3,8 @@
 import type { PageProps } from "@/.next/types/app/page";
 import React, { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
-import {
-  Playlist,
-  Song,
-  getSongById,
-  getSavedSongs,
-} from "@/app/client-actions";
-
+import { getSongById, getSavedSongs } from "@/app/client-actions";
+import type { Playlist, Song } from "@/app/types";
 // UI imports
 import {
   AlertDialog,
@@ -35,7 +30,8 @@ import { toast } from "sonner";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 import { SongList } from "@/components/song-list";
 import { redirect } from "next/navigation";
-import { Filter } from "bad-words";
+import { properFilter } from "@/lib/utils";
+import Link from "next/link";
 
 /// <summary>
 /// PlaylistPage component that displays the details of a specific playlist.
@@ -50,8 +46,7 @@ export default function PlaylistPage(props: PageProps) {
   const [showEditPlaylist, setShowEditPlaylist] = useState(false);
   const [userSavedSongs, setUserSavedSongs] = useState<Song[]>([]);
   const [songToRemove, setSongToRemove] = useState<Song | null>(null);
-  const [showDeleteConfirmation, setShowDeleteConfirmation] =
-    useState<boolean>(false);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState<boolean>(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filteredSongs, setFilteredSongs] = useState<Song[]>([]);
   const [denied, setDenied] = useState(false);
@@ -61,6 +56,7 @@ export default function PlaylistPage(props: PageProps) {
   const [playlistOwner, setPlaylistOwner] = useState<string>(""); // UUID of the playlist owner
   const [playlistOwnerName, setPlaylistOwnerName] = useState<string>(""); // Name of the playlist owner
   const [playlistOwnerImage, setPlaylistOwnerImage] = useState<string>(""); // Image of the playlist owner
+  const [playlistOwnerUsername, setPlaylistOwnerUsername] = useState<string>(""); // Username of the playlist owner
 
   // Load user data and playlist details when the component mounts
   useEffect(() => {
@@ -136,7 +132,7 @@ export default function PlaylistPage(props: PageProps) {
 
         const { data: ownerData, error: ownerError } = await supabase
           .from("users")
-          .select("id, name, userIcon")
+          .select("id, name, userIcon, username")
           .eq("id", playlistData.userId)
           .single();
 
@@ -146,6 +142,7 @@ export default function PlaylistPage(props: PageProps) {
         } else {
           setPlaylistOwnerName(ownerData?.name);
           setPlaylistOwnerImage(ownerData?.userIcon);
+          setPlaylistOwnerUsername(ownerData?.username || "Unknown User");
         }
 
         // Load user's saved songs
@@ -271,13 +268,12 @@ export default function PlaylistPage(props: PageProps) {
 
     // Get form data
     const formData = new FormData(event.currentTarget);
-    const filter = new Filter();
     let updatedName = formData.get("name") as string;
     if (!updatedName) updatedName = playlist?.name || "Untitled Playlist"; // Fallback to current name if empty
-    else updatedName = filter.clean(updatedName); // Clean the name using bad-words filter
+    else updatedName = properFilter(updatedName); // Clean the name using bad-words filter
     let updatedDescription = formData.get("description") as string;
     if (!updatedDescription) updatedDescription = playlist?.description || "No description available"; // Fallback to current description if empty
-    else updatedDescription = filter.clean(updatedDescription); // Clean the description using bad-words filter
+    else updatedDescription = properFilter(updatedDescription); // Clean the description using bad-words filter
     let updatedCoverArt = formData.get("coverArt") as string;
     if (!updatedCoverArt) {
       updatedCoverArt = playlist?.coverArt || "/default-playlist-image.png"; // Fallback to current cover art if empty
@@ -541,14 +537,16 @@ export default function PlaylistPage(props: PageProps) {
       <h1 className="text-4xl font-bold mb-4">{playlist.name}</h1>
       <div className="flex items-center gap-4 mb-2">
         <div className="flex items-center gap-2">
-          <Image
-            src={"https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars/" + (playlistOwnerImage || "default-avatar.png")}
-            alt={playlistOwnerName || "Playlist Owner"}
-            width={20}
-            height={20}
-            className="rounded-full w-[20px] h-[20px] object-cover shadow-sm"
-          />
-          <span className="text-base font-normal">{playlistOwnerName || "Unknown"}</span>
+          <Link href={`/u/${playlistOwnerUsername}`} className="flex items-center gap-2">
+            <Image
+              src={"https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars/" + (playlistOwnerImage || "default-avatar.png")}
+              alt={playlistOwnerName || "Playlist Owner"}
+              width={20}
+              height={20}
+              className="rounded-full w-[20px] h-[20px] object-cover shadow-sm"
+            />
+            <span className="text-base font-normal">{playlistOwnerName || "Unknown"}</span>
+          </Link>
         </div>
       </div>
       <div className="max-w-2xl mb-2">

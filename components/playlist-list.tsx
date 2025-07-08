@@ -1,5 +1,5 @@
 "use client";
-import type { Playlist } from "@/app/actions";
+import type { Playlist } from "@/app/types";
 import { useRouter } from "next/navigation";
 
 export default function PlaylistList ({ playlists } : { playlists: Playlist[]}) {
