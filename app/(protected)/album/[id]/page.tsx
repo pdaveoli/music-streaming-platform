@@ -67,7 +67,7 @@ export default function AlbumPage(props: PageProps) {
           `Album ${id} saved status for user ${userIdValue}:`,
           savedStatus
         );
-        console.log(`Type of saved status:`, typeof savedStatus);
+        console.log("Type of saved status:", typeof savedStatus);
         setSaved(Boolean(savedStatus));
 
         // Load songs

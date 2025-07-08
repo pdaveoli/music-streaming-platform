@@ -197,7 +197,7 @@ export default function AppSidebar() {
 
   return (
     <>
-      <div className={`md:hidden fixed top-0 left-0 z-50 p-2`}>
+      <div className={"md:hidden fixed top-0 left-0 z-50 p-2"}>
         <Button onClick={toggleMobileMenu} variant="ghost" size="icon" className="m-2">
           {isMobileMenuOpen ? <XIcon className="h-6 w-6" /> : <MenuIcon className="h-6 w-6" />}
         </Button>
