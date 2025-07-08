@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import Avatar from "./avatar";
 import { MultiSelectGenres } from "./multi-select-genres"; 
 import type { User } from "@supabase/auth-js";
+import { Filter } from "bad-words"; 
 
 /// <summary>
 /// AccountPage component that allows users to view and update their account information.
@@ -86,10 +87,14 @@ export default function AccountPage() {
     }
     // Get form data
     const formData = new FormData(event.currentTarget);
-    const name = formData.get("name") as string;
-    const bio = formData.get("bio") as string;
+    let name = formData.get("name") as string;
+    let bio = formData.get("bio") as string;
     const dateOfBirth = formData.get("date_of_birth") as string;
     const supabase = createClient();
+    const filter = new Filter();
+
+    name = filter.clean(name); // Clean the name using bad-words filter
+    bio = filter.clean(bio); // Clean the bio using bad-words filter
     
     // Update user details
     const { error } = await supabase

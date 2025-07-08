@@ -34,6 +34,8 @@ import { Eye, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 import { SongList } from "@/components/song-list";
+import { redirect } from "next/navigation";
+import { Filter } from "bad-words";
 
 /// <summary>
 /// PlaylistPage component that displays the details of a specific playlist.
@@ -55,6 +57,10 @@ export default function PlaylistPage(props: PageProps) {
   const [denied, setDenied] = useState(false);
   const [visibility, setVisibility] = useState<string>("private");
   const [isUsersPlaylist, setIsUsersPlaylist] = useState<boolean>(false);
+  const [savedPlaylist, setSavedPlaylist] = useState<boolean>(false);
+  const [playlistOwner, setPlaylistOwner] = useState<string>(""); // UUID of the playlist owner
+  const [playlistOwnerName, setPlaylistOwnerName] = useState<string>(""); // Name of the playlist owner
+  const [playlistOwnerImage, setPlaylistOwnerImage] = useState<string>(""); // Image of the playlist owner
 
   // Load user data and playlist details when the component mounts
   useEffect(() => {
@@ -124,10 +130,51 @@ export default function PlaylistPage(props: PageProps) {
           setIsUsersPlaylist(true);
         }
 
+        setPlaylistOwner(playlistData.userId);
+        
+        // Get details for the playlist owner
+
+        const { data: ownerData, error: ownerError } = await supabase
+          .from("users")
+          .select("id, name, userIcon")
+          .eq("id", playlistData.userId)
+          .single();
+
+        if (ownerError) {
+          console.error("Error fetching playlist owner details:", ownerError);
+          toast.error("Failed to fetch playlist owner details.");
+        } else {
+          setPlaylistOwnerName(ownerData?.name);
+          setPlaylistOwnerImage(ownerData?.userIcon);
+        }
+
         // Load user's saved songs
         if (user.id) {
           const savedSongsData: Song[] = await getSavedSongs(user.id);
           setUserSavedSongs(savedSongsData);
+        }
+
+        // Check if the playlist is saved
+        if (user.id) {
+          const { data: userPlaylists, error } = await supabase
+            .from("users")
+            .select("id, playlists")
+            .eq("id", user.id)
+            .single();
+
+            if (error) {
+              console.error("Error fetching user playlists:", error);
+              toast.error("Failed to fetch user playlists.");
+              return;
+            }
+
+            // Check if the playlist is already saved
+            if (userPlaylists.playlists && userPlaylists.playlists.includes(playlistData?.id)) {
+              setSavedPlaylist(true);
+            } else {
+              setSavedPlaylist(false);
+            }
+            
         }
       } catch (error) {
         console.error("Error loading playlist:", error);
@@ -224,11 +271,13 @@ export default function PlaylistPage(props: PageProps) {
 
     // Get form data
     const formData = new FormData(event.currentTarget);
+    const filter = new Filter();
     let updatedName = formData.get("name") as string;
     if (!updatedName) updatedName = playlist?.name || "Untitled Playlist"; // Fallback to current name if empty
+    else filter.clean(updatedName); // Clean the name using bad-words filter
     let updatedDescription = formData.get("description") as string;
-    if (!updatedDescription)
-      updatedDescription = playlist?.description || "No description available"; // Fallback to current description if empty
+    if (!updatedDescription) updatedDescription = playlist?.description || "No description available"; // Fallback to current description if empty
+    else filter.clean(updatedDescription); // Clean the description using bad-words filter
     let updatedCoverArt = formData.get("coverArt") as string;
     if (!updatedCoverArt) {
       updatedCoverArt = playlist?.coverArt || "/default-playlist-image.png"; // Fallback to current cover art if empty
@@ -367,6 +416,99 @@ export default function PlaylistPage(props: PageProps) {
       } as React.ChangeEvent<HTMLInputElement>);
     }
   };
+  /// <summary>
+  /// Function to save the playlist to the user's library.
+  /// It checks if the playlist is already saved and updates the user's playlists accordingly.
+  /// </summary>
+  /// <returns>void</returns>
+  const savePlaylist = async () : Promise<void> => {
+    if (!playlist) {
+      toast.error("Playlist not found.");
+      redirect("/home");
+    }
+
+    const supabase = createClient();
+    // get all saved playlists for the user
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, playlists")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching user playlists:", error);
+      toast.error("Failed to fetch user playlists.");
+      return;
+    }
+
+    // Check if the playlist is already saved
+    if (data.playlists && data.playlists.includes(playlist.id)) {
+      toast.warning("Playlist already saved to your library.");
+      return;
+    }
+
+    // Add the playlist to the user's saved playlists
+    const updatedPlaylists = [...(data.playlists || []), playlist.id];
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ playlists: updatedPlaylists })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Error saving playlist:", updateError);
+      toast.error("Failed to save playlist. Please try again.");
+    } else {
+      toast.success("Playlist saved to your library!");
+    }
+
+  }
+  /// <summary>
+  /// Function to unsave the playlist from the user's library.
+  /// It removes the playlist from the user's saved playlists.
+  /// </summary>
+  /// <returns>void</returns>
+  const unSavePlaylist = async () : Promise<void> => {
+    if (!playlist) {
+      toast.error("Playlist not found.");
+      redirect("/home");
+    }
+
+    const supabase = createClient();
+    // get all saved playlists for the user
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, playlists")
+      .eq("id", userId)
+      .single();
+
+    if (error) {
+      console.error("Error fetching user playlists:", error);
+      toast.error("Failed to fetch user playlists.");
+      return;
+    }
+
+    // Check if the playlist is already saved
+    if (!data.playlists || !data.playlists.includes(playlist.id)) {
+      toast.warning("Playlist not found in your library.");
+      return;
+    }
+
+    // Remove the playlist from the user's saved playlists
+    const updatedPlaylists = data.playlists.filter(
+      (id: string) => id !== playlist.id
+    );
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ playlists: updatedPlaylists })
+      .eq("id", userId);
+
+    if (updateError) {
+      console.error("Error unsaving playlist:", updateError);
+      toast.error("Failed to unsave playlist. Please try again.");
+    } else {
+      toast.success("Playlist removed from your library!");
+    }
+  };
 
   // If loading or denied, show loading or denied message
   if (loading || denied) {
@@ -397,24 +539,25 @@ export default function PlaylistPage(props: PageProps) {
         className="rounded-lg mb-4 w-128 h-128 aspect-square object-cover shadow-lg"
       />
       <h1 className="text-4xl font-bold mb-4">{playlist.name}</h1>
+      <div className="flex items-center gap-4 mb-2">
+        <div className="flex items-center gap-2">
+          <Image
+            src={"https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars/" + (playlistOwnerImage || "default-avatar.png")}
+            alt={playlistOwnerName || "Playlist Owner"}
+            width={20}
+            height={20}
+            className="rounded-full w-[20px] h-[20px] object-cover shadow-sm"
+          />
+          <span className="text-base font-normal">{playlistOwnerName || "Unknown"}</span>
+        </div>
+      </div>
       <div className="max-w-2xl mb-2">
         <ExpandableDescription
           text={playlist.description || "No description"}
           truncateLength={300}
         />
       </div>
-      {/* Display playlist ownership */}
-      {playlist.public === 1 ? (
-        <div className="flex items-center justify-center mb-4 text-gray-500">
-          <Eye className="mr-2 w-4 h-4" />
-          <p className="text-sm ">Public Playlist</p>
-        </div>
-      ) : (
-        <div className="flex items-center justify-center mb-4 text-gray-500">
-          <Lock className="mr-2 w-4 h-4" />
-          <p className="text-sm ">Private Playlist</p>
-        </div>
-      )}
+      
       <div className="flex gap-4">
         {isUsersPlaylist ? (
           <Button
@@ -423,8 +566,18 @@ export default function PlaylistPage(props: PageProps) {
           >
             Edit Playlist
           </Button>
+        ) : savedPlaylist ? (
+          <Button
+            onClick={unSavePlaylist}
+            className="bg-red-500 text-white px-4 py-2 rounded"
+          >
+            Remove from Library
+          </Button>
         ) : (
-          <Button className="bg-green-500 text-white px-4 py-2 rounded">
+          <Button
+            onClick={savePlaylist}
+            className="bg-green-500 text-white px-4 py-2 rounded"
+          >
             Save to Library
           </Button>
         )}

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/client";
 import { redirect } from "next/navigation";
+import { Filter } from "bad-words";
 
 // ! Actions for client-side data fetching and manipulation
 
@@ -217,6 +218,7 @@ export async function getSavedPlaylists(userId: string): Promise<Playlist[]> {
 /// </remarks>
 export async function createPlaylist(formData: FormData) {
   const supabase = createClient();
+  const filter = new Filter();
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -227,12 +229,15 @@ export async function createPlaylist(formData: FormData) {
   }
 
   // Get form data for playlist creation
-  const name = formData.get("name") as string;
-  const description = formData.get("description") as string;
+  let name = formData.get("name") as string;
+  let description = formData.get("description") as string;
 
   if (!name) {
     return { error: "Playlist name is required." };
   }
+
+  name = filter.clean(name); // Clean the name using bad-words filter
+  description = filter.clean(description); // Clean the description using bad-words filter
   
   // Insert new playlist into the database
   const { data, error } = await supabase

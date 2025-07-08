@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MultiSelectGenres } from "../account/multi-select-genres";
 import { Button } from "@/components/ui/button";
+import { Filter } from "bad-words"; // Import bad-words filter for profanity filtering
 
 export default function WelcomePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -81,10 +82,13 @@ export default function WelcomePage() {
     }
     // Get form data
     const formData = new FormData(event.currentTarget);
-    const name = formData.get("name") as string;
-    const bio = formData.get("bio") as string;
+    let name = formData.get("name") as string;
+    let bio = formData.get("bio") as string;
     const dateOfBirth = formData.get("date_of_birth") as string;
     const supabase = createClient();
+    const filter = new Filter();
+    name = filter.clean(name); // Clean the name using bad-words filter
+    bio = filter.clean(bio); // Clean the bio using bad-words filter
 
     // Update user details
     const { error } = await supabase
