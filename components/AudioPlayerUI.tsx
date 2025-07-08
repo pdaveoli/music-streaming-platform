@@ -55,7 +55,7 @@ function parseLyrics(lrcContent: string): { time: number; text: string }[] {
   lines.forEach((line) => {
     const match = line.match(regex);
     // Access groups by index: match[1] for time, match[2] for text
-    if (match && match[1] && match[2] !== undefined) {
+    if (match?.[1] && match[2] !== undefined) {
       const time = match[1];
       const text = match[2];
       if (text.trim() !== "") {
@@ -226,7 +226,7 @@ export default function PersistentAudioPlayerUI() {
 
   // Effect to fetch and parse lyrics when currentTrack changes
   useEffect(() => {
-    if (currentTrack && currentTrack.lyricsUrl) {
+    if (currentTrack?.lyricsUrl) {
       fetch(currentTrack.lyricsUrl)
         .then((response) => {
           if (!response.ok)

@@ -83,7 +83,7 @@ export default function PlaylistPage(props: PageProps) {
           setVisibility(playlistData.public === 1 ? "public" : "private");
         }
 
-        if (playlistData && playlistData.songs) {
+        if (playlistData?.songs) {
           // get playlist songs using the fetched data directly
           const songsData: Song[] = await Promise.all(
             playlistData.songs.map(async (songId: string) => {
@@ -147,7 +147,7 @@ export default function PlaylistPage(props: PageProps) {
     // add song to playlist
     console.log("Adding song to playlist:", song);
     // check if song already exists in playlist
-    if (playlist && playlist.songs && !playlist.songs.includes(song.id)) {
+    if (playlist?.songs && !playlist.songs.includes(song.id)) {
       const supabase = createClient();
       const { data, error } = await supabase
         .from("playlists")
@@ -173,7 +173,7 @@ export default function PlaylistPage(props: PageProps) {
         // Update the songs state to include the newly added song
         setSongs((prevSongs) => [...prevSongs, song]);
       }
-    } else if (playlist && playlist.songs && playlist.songs.includes(song.id)) {
+    } else if (playlist?.songs && playlist.songs.includes(song.id)) {
       // If the song is already in the playlist, show a warning
       console.warn("This song is already in the playlist.");
       toast.warning("This song is already in the playlist.");
