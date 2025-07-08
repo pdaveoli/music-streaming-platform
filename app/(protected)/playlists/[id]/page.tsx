@@ -274,10 +274,10 @@ export default function PlaylistPage(props: PageProps) {
     const filter = new Filter();
     let updatedName = formData.get("name") as string;
     if (!updatedName) updatedName = playlist?.name || "Untitled Playlist"; // Fallback to current name if empty
-    else filter.clean(updatedName); // Clean the name using bad-words filter
+    else updatedName = filter.clean(updatedName); // Clean the name using bad-words filter
     let updatedDescription = formData.get("description") as string;
     if (!updatedDescription) updatedDescription = playlist?.description || "No description available"; // Fallback to current description if empty
-    else filter.clean(updatedDescription); // Clean the description using bad-words filter
+    else updatedDescription = filter.clean(updatedDescription); // Clean the description using bad-words filter
     let updatedCoverArt = formData.get("coverArt") as string;
     if (!updatedCoverArt) {
       updatedCoverArt = playlist?.coverArt || "/default-playlist-image.png"; // Fallback to current cover art if empty
