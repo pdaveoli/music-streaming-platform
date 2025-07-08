@@ -1,7 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import { Play, Shuffle, Ellipsis } from "lucide-react";
-import type { Song } from "@/app/client-actions";
+import type { Song, Playlist } from "@/app/client-actions";
 import { useAudio } from "@/context/AudioContext";
 import { toast } from "sonner";
 import {
@@ -49,7 +49,7 @@ export function SongList({
   } = useAudio();
   const [isAddToPlaylistOpen, setIsAddToPlaylistOpen] = useState(false);
   const [songToAdd, setSongToAdd] = useState<Song | null>(null);
-  const [userPlaylists, setUserPlaylists] = useState<any[]>([]);
+  const [userPlaylists, setUserPlaylists] = useState<Playlist[]>([]);
   const [isLoadingPlaylists, setIsLoadingPlaylists] = useState(false);
   const [userId, setUserId] = useState<string>("");
 
