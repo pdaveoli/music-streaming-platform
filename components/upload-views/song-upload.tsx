@@ -1,6 +1,6 @@
 "use client";
 
-import { Artist } from "@/app/actions";
+import type { Artist } from "@/app/types";
 import React, { useRef, useState } from "react";
 import { Popover, PopoverTrigger, PopoverContent } from "../ui/popover";
 import { Button } from "../ui/button";

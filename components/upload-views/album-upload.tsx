@@ -1,12 +1,5 @@
 "use client";
-import type { Song } from '@/app/actions';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select" // Keep for other potential single selects, or remove if not used elsewhere
+import type { Song } from '@/app/types';
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 import * as React from "react"; // Import React
