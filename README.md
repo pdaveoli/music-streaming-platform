@@ -28,6 +28,7 @@
   - [Installation](#installation)
   - [Usage](#usage)
 - [Project Roadmap](#project-roadmap)
+  - [Potential Features](#potential-features)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -71,7 +72,7 @@ FreeStream is a feature-rich music streaming platform designed for educational p
 └── music-streaming-platform/
     ├── app/
     │   ├── (auth)/                 # Routes for authentication
-    │   ├── (protected)/            # Routes protected by authentication
+    │   ├── (protected)/            # Logged in routes (audio player app)
     │   ├── api/                    # API routes
     │   ├── client-actions.ts       # Client-side data fetching functions
     │   ├── globals.css
@@ -84,10 +85,11 @@ FreeStream is a feature-rich music streaming platform designed for educational p
     ├── lib/
     │   ├── supabase/               # Supabase client and server helpers
     │   └── utils.ts                # Utility functions (e.g., cn)
+    ├── context/                    # The full audio system
     ├── public/                     # Static assets (images, fonts)
-    ├── .env.local.example          # Example environment variables
+    ├── .env.example                # Example environment variables
     ├── middleware.ts               # Next.js middleware for route protection
-    ├── next.config.js
+    ├── next.config.js              # Next.js settings (mainly for image routes)
     └── package.json
 ```
 
@@ -134,9 +136,15 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 ##  Project Roadmap
 
 -   [x] **`Feature`**: <strike>Upload albums across three distinct genres.</strike>
--   [ ] **`Enhancement`**: Improve and simplify the developer-facing song upload screen.
--   [ ] **`Bugfix`**: Refine shuffle and repeat functionality for edge cases.
--   [ ] **`Feature`**: Explore options for "smart" or auto-generated playlists.
+-   [X] **`Feature`**: <strike>Create profile system</strike>
+-   [ ] **`Feature`**: Allow users to follow each other
+-   [ ] **`Feature`**: Allows users to comment on other people's playlists / profiles
+-   [X] **`Feature`**: <strike>Add basic content filtering for text</strike>
+
+### Potential Features
+
+-   [ ] **`Feature`**: Collaberation playlists?
+-   [ ] **`Feature`**: Create proper discovery page and recomendations?
 
 ---
 

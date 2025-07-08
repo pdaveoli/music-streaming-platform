@@ -181,7 +181,7 @@ export default function AppSidebar() {
                   {userDetails?.name || 'Guest'}
                 </p>
                 <p className="text-xs text-muted-foreground truncate">
-                  {userDetails?.username || '...'}
+                  @{userDetails?.username || '...'}
                 </p>
               </div>
             </Button>
