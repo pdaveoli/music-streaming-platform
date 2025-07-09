@@ -174,8 +174,12 @@ export default function SearchPage() {
               )}
               {userResults.length > 0 && (
                 <div>
+                  {/* User Section */}
+                  <h3 className="text-md font-semibold text-center mb-2">
+                    Users
+                  </h3>
                   {userResults.map((user) => (
-                    <Link href={`/artist/${user.username}`} key={user.id}>
+                    <Link href={`/u/${user.username}`} key={user.id}>
                         <div className="border-b w-full flex items-center p-3 hover:bg-accent transition-colors">
                           <div className="flex items-center overflow-hidden flex-1">
                             <img
