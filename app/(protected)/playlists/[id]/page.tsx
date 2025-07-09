@@ -528,7 +528,7 @@ export default function PlaylistPage(props: PageProps) {
     <div className="flex flex-col items-center justify-center p-4 md:p-8 mx-auto w-full min-h-screen">
       {/* Playlist details section */}
       <Image
-        src={playlist.coverArt || "/default-playlist-image.png"}
+        src={playlist.coverArt || "https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars//default-playlist.jpg"}
         alt={playlist.name}
         width={300}
         height={300}
@@ -595,7 +595,7 @@ export default function PlaylistPage(props: PageProps) {
             />
             <input
               type="url"
-              defaultValue={playlist.coverArt}
+              defaultValue={playlist.coverArt || ""}
               placeholder="Cover Art URL (128x128)"
               className="border p-2 rounded w-full"
               name="coverArt"

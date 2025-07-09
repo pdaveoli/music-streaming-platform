@@ -13,7 +13,7 @@ export default function PlaylistList ({ playlists } : { playlists: Playlist[]}) 
                     onClick={() => router.push(`/playlists/${playlist.id}`)}
                 >
                     <img
-                        src={playlist.coverArt}
+                        src={playlist.coverArt || "https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars//default-playlist.jpg"}
                         alt={playlist.name}
                         className="w-full aspect-square object-cover rounded-md mb-2 transition-opacity group-hover:opacity-80"
                     />

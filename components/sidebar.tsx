@@ -192,7 +192,7 @@ export default function AppSidebar() {
             align="start"
             className="w-[var(--radix-dropdown-menu-trigger-width)] mb-1"
           >
-            <DropdownMenuLabel className='flex items-center gap-2 p-2'>
+            <DropdownMenuLabel className='flex items-center gap-2'>
               <Mail className="h-5 w-5 text-muted-foreground" />
               <span className='text-sm font-normal truncate'>{userEmail || "Guest"}</span>
             </DropdownMenuLabel>
