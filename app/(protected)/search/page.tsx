@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { SearchPageData } from "@/app/client-actions";
-import type { Album, Artist, Playlist, Song } from "@/app/types";
+import type { UserDetails, Album, Artist, Playlist, Song } from "@/app/types";
 import { SongList } from "@/components/song-list";
 import Link from "next/link";
 
@@ -19,10 +19,12 @@ export default function SearchPage() {
   const [artistResults, setArtistResults] = useState<Artist[]>([]);
   const [trackResults, setTrackResults] = useState<Song[]>([]);
   const [playlistResults, setPlaylistResults] = useState<Playlist[]>([]);
+  const [userResults, setUserResults] = useState<UserDetails[]>([]);
   const [albums, setAlbums] = useState<Album[]>([]);
   const [artists, setArtists] = useState<Artist[]>([]);
   const [tracks, setTracks] = useState<Song[]>([]);
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  const [users, setUsers] = useState<UserDetails[]>([]);
 
   // get albums, artists, and tracks
   useEffect(() => {
@@ -33,6 +35,7 @@ export default function SearchPage() {
         setArtists(data.artists || []);
         setTracks(data.songs || []);
         setPlaylists(data.playlists || []);
+        setUsers(data.users || []);
       }
     };
     loadItems();
@@ -72,6 +75,14 @@ export default function SearchPage() {
         playlist.description.toLowerCase().includes(query)
     );
     setPlaylistResults(playlistRes);
+
+    const userRes = users.filter(
+      (user) =>
+        user.name?.toLowerCase().includes(query) ||
+        user.username?.toLowerCase().includes(query) ||
+        user.bio?.toLowerCase().includes(query)
+    );
+    setUserResults(userRes);
   };
   return (
     <div className="flex flex-col items-center min-h-screen p-4">
@@ -81,7 +92,7 @@ export default function SearchPage() {
           <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none" />
           <Input
             type="text"
-            placeholder="Search for albums, artists, or tracks..."
+            placeholder="Search for albums, artists, playlists, users or tracks..."
             className="pl-10 pr-10"
             value={searchQuery}
             onChange={handleSearch}
@@ -161,6 +172,33 @@ export default function SearchPage() {
                   </div>
                 </div>
               )}
+              {userResults.length > 0 && (
+                <div>
+                  {userResults.map((user) => (
+                    <Link href={`/artist/${user.username}`} key={user.id}>
+                        <div className="border-b w-full flex items-center p-3 hover:bg-accent transition-colors">
+                          <div className="flex items-center overflow-hidden flex-1">
+                            <img
+                              src={
+                                "https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars/" + (user.userIcon || "default-user.jpg")
+                              }
+                              alt={user.name}
+                              className="w-12 h-12 object-cover rounded-full mr-4 flex-shrink-0"
+                            />
+                            <div className="overflow-hidden">
+                              <p className="font-semibold truncate text-foreground">
+                                {user.name}
+                              </p>
+                              <p className="text-sm text-muted-foreground">
+                                @{user.username}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </Link>  
+                  ))}
+                </div>
+              )}
               {playlistResults.length > 0 && (
                 <div>
                   {/* Playlists Section */}
@@ -224,13 +262,13 @@ export default function SearchPage() {
                 "No results found."}
             </div>
             <div className="text-center text-sm text-gray-500 mt-2">
-              Tip: You can search by album name, artist name, track title, or
+              Tip: You can search by album name, artist name, track title, username / Display Name or
               playlist name/description.
             </div>
           </>
         ) : (
           <div className="text-center text-sm text-gray-500 mt-8">
-            Start typing to search for albums, artists, or tracks.
+            Start typing to search for albums, artists, playlists, users or tracks.
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/client";
 import { redirect } from "next/navigation";
 import { Filter } from "bad-words";
-import { Album, Artist, Playlist, Song } from "./types";
+import { Album, Artist, Playlist, Song, UserDetails } from "./types";
 // ! Actions for client-side data fetching and manipulation
 
 
@@ -277,6 +277,26 @@ export async function getPublicPlaylists(): Promise<Playlist[]> {
 }
 
 /// <summary>
+/// Gets all users from the database.
+/// </summary>
+/// <returns>An array of UserDetails objects.</returns>
+/// <remarks>
+/// This function retrieves all users from the "users" table.
+/// If the query fails, it returns an empty array.
+/// </remarks>
+export async function getUsers(): Promise<UserDetails[]> {
+  const supabase = createClient();
+  const { data, error } = await supabase.from("users").select("*");
+
+  if (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+
+  return data || [];
+}
+
+/// <summary>
 /// Fetches data for the search page, including albums, songs, artists, and playlists.
 /// </summary>
 /// <returns>An object containing arrays of albums, songs, artists, and playlists.</returns>
@@ -289,17 +309,20 @@ export async function SearchPageData(): Promise<{
   songs: Song[];
   artists: Artist[];
   playlists: Playlist[];
+  users: UserDetails[];
 }> {
   let albums = await getAlbums();
   let songs = await getSongs();
   let artists = await getArtists();
   let playlists = await getPublicPlaylists();
+  let users = await getUsers();
 
   return Promise.resolve({
     albums: albums ? albums : [],
     songs: songs ? songs : [],
     artists: artists ? artists : [],
     playlists: playlists ? playlists : [],
+    users: users ? users : [],
   });
 }
 

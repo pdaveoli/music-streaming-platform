@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/client";
 import SaveButton from "@/components/save-album-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Album, Song } from "@/app/types"; 
+import Link from "next/link";
 /// <summary>
 /// AlbumPage component that displays album details, songs, and save functionality.
 /// It fetches album data, songs, and user information from the server using client-side actions.
@@ -24,6 +25,7 @@ export default function AlbumPage(props: PageProps) {
   const [userId, setUserId] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [albumId, setAlbumId] = useState<string>("");
+  const [artistId, setArtistId] = useState<string>("");
 
 
   // Fetch album data, songs, and user information when the component mounts
@@ -78,6 +80,26 @@ export default function AlbumPage(props: PageProps) {
           })
         );
 
+        // Get the artist ID from the artist name field from the album data
+
+        const artistName = albumData.artist;
+
+        if (artistName) {
+          const { data: artistData, error: artistError } = await supabase
+            .from("artists")
+            .select("id")
+            .eq("name", artistName)
+            .single();
+
+          if (artistError) {
+            console.error("Error fetching artist ID:", artistError);
+          } else if (artistData) {
+            setArtistId(artistData.id);
+          } else {
+            console.warn("No artist found with name:", artistName);
+          }
+        }
+
         setAlbum(albumData);
         setSongs(songsData);
       } catch (error) {
@@ -130,9 +152,13 @@ export default function AlbumPage(props: PageProps) {
           alt={album?.name}
           className="w-64 h-64 object-cover rounded-lg mb-4"
         />
-        <h1 className="text-4xl font-bold mb-4">{album?.name}</h1>
-        <p className="text-lg text-gray-600 mb-4">Artist: {album?.artist}</p>
-        <p className="text-base text-gray-800 mb-4">
+        <h1 className="text-4xl font-bold mb-4 truncate max-w-2xl">{album?.name}</h1>
+        <Link href={`/artist/${artistId}`}>
+          <p className="text-base text-gray-600 dark:text-gray-200 mb-2">
+            {album?.artist || "Unknown Artist"}
+          </p>
+        </Link>
+        <p className="text-sm text-gray-800 dark:text-gray-400 mb-4">
           {album?.genre} • {album?.metadata?.releaseDate}
         </p>
         <SaveButton

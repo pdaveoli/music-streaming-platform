@@ -22,6 +22,7 @@ import { getUserEditablePlaylists } from "@/app/client-actions";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "./ui/dropdown-menu";
+import {redirect} from "next/navigation";
 
 export function SongList({
   songs,
@@ -253,6 +254,26 @@ export function SongList({
     return `${minutes} minute${minutes > 1 ? 's' : ''} ${(duration % 60).toString().padStart(2, '0')} second${(duration % 60) > 1 ? 's' : ''}`;
   };
 
+  const handleViewArtist = async (artistName: string) => {
+    const supabase = createClient();
+    const {data, error } = await supabase
+      .from("artists")
+      .select("id")
+      .eq("name", artistName)
+      .single();
+
+    if (error || !data) {
+        toast.error("Cannot find artist")
+        return;
+      }
+
+      // redirect to url
+
+      redirect("/artist/" + data.id)
+
+
+  }
+
   return (
     <>
       <div className="w-full">
@@ -356,6 +377,11 @@ export function SongList({
                     onSelect={() => handleOpenAddToPlaylist(song)}
                   >
                     Add to Playlist
+                  </ContextMenuItem>
+                  <ContextMenuItem
+                    onClick={() => handleViewArtist(song.artist)}
+                  >
+                    View Artist
                   </ContextMenuItem>
                   {onRemoveFromPlaylist && (
                     <>

@@ -609,6 +609,7 @@ export default function PlaylistPage(props: PageProps) {
               placeholder="Description goes here"
               className="border p-2 rounded w-full mt-2"
               name="description"
+              rows={5}
             />
             {/* Visibility Dropdown */}
             <Select

@@ -22,13 +22,14 @@ import {
   LogOutIcon,
   MenuIcon,
   XIcon,
-  Music, // A nice icon for the logo
+  Music,
+  Mail
 } from 'lucide-react';
 import { createClient } from "@/lib/supabase/client"; 
 import { redirect } from 'next/navigation';
 import type { UserDetails } from '@/app/types';
 import { toast } from 'sonner';
-import { cn } from '@/lib/utils'; // For cleaner class name logic
+import { cn } from '@/lib/utils'; 
 
 interface NavItem {
   href: string;
@@ -192,8 +193,12 @@ export default function AppSidebar() {
             className="w-[var(--radix-dropdown-menu-trigger-width)] mb-1"
           >
             <DropdownMenuLabel className='flex items-center gap-2 p-2'>
-              <UserIcon className="h-5 w-5 text-muted-foreground" />
+              <Mail className="h-5 w-5 text-muted-foreground" />
               <span className='text-sm font-normal truncate'>{userEmail || "Guest"}</span>
+            </DropdownMenuLabel>
+            <DropdownMenuLabel className='text-xs text-muted-foreground'>
+              {userDetails?.username ? `@${userDetails.username}` : "No username set"}
+              &nbsp; &bull; &nbsp;Free Plan
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {userNavigationItems.map((item) => (

@@ -8,7 +8,6 @@ import { toast } from "sonner";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 import AlbumList from "@/components/album-list";
 import PlaylistList from "@/components/playlist-list";
-import { set } from "react-hook-form";
 
 export default function UserPage(props: PageProps) {
   const [currentUser, setCurrentUser] = useState<UserDetails | null>(null);
@@ -160,7 +159,7 @@ export default function UserPage(props: PageProps) {
         {/* Artist Header */}
         <div className="flex flex-col md:flex-row items-center md:items-start gap-8 mb-8">
           <Image
-            src={"https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars/" + (pageuser?.userIcon || "default-avatar.png")}
+            src={"https://smtdqezdamcycolojywa.supabase.co/storage/v1/object/public/avatars/" + (pageuser?.userIcon || "default-user.jpg")}
             alt={pageuser?.username || "User Avatar"}
             width={200}
             height={200}
