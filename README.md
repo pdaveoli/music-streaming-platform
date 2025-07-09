@@ -137,6 +137,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 -   [x] **`Feature`**: <strike>Upload albums across three distinct genres.</strike>
 -   [X] **`Feature`**: <strike>Create profile system</strike>
+-   [X] **`Bug`**: <strike>The audio player won't work if you queue a song without having a song playing in the first place </strike>
 -   [ ] **`Feature`**: Allow users to follow each other
 -   [ ] **`Feature`**: Allows users to comment on other people's playlists / profiles
 -   [X] **`Feature`**: <strike>Add basic content filtering for text</strike>

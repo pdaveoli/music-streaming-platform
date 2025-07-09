@@ -296,8 +296,16 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
     const addToQueue = (track: Song, next: boolean) => {
         // Add to our queued tracks reference
         queuedTracks.current.push(track);
-        
+    
         setTracks(prevTracks => {
+            // This is the key fix: Check if the queue was empty before adding.
+            if (prevTracks.length === 0) {
+                // If so, this new track becomes the current track.
+                setCurrentTrackIndex(0);
+                return [track];
+            }
+    
+            // If the queue was not empty, proceed as before.
             if (next && currentTrackIndex !== null) {
                 // Insert after current track
                 const newTracks = [...prevTracks];
@@ -308,11 +316,6 @@ export const AudioProvider = ({ children }: { children: ReactNode }) => {
                 return [...prevTracks, track];
             }
         });
-        
-        // Update current track index if we inserted before it
-        if (next && currentTrackIndex !== null) {
-            // No need to update currentTrackIndex since we inserted after current track
-        }
     };
 
     const removeFromQueue = (track: Song) => {

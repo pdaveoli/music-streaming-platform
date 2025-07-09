@@ -142,7 +142,7 @@ export default function PersistentAudioPlayerUI() {
     }
   }, [audioRef, volume]);
 
-  const currentTrack =
+  let currentTrack =
     currentTrackIndex !== null && tracks[currentTrackIndex]
       ? tracks[currentTrackIndex]
       : null;
@@ -332,6 +332,7 @@ export default function PersistentAudioPlayerUI() {
       toast("Removed from queue");
     }
   };
+
 
   // If not mounted, show a loading skeleton
   if (!isMounted) {
@@ -632,7 +633,7 @@ export default function PersistentAudioPlayerUI() {
                       </ContextMenu>
                     </div>
                   ))}
-                  {tracks.length === 0 && (
+                  {queue.length === 0 && (
                     <p className="text-gray-400 dark:text-gray-500 text-sm text-center py-10">
                       No tracks in queue.
                     </p>
