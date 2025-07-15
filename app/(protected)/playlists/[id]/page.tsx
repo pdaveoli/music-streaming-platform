@@ -29,7 +29,7 @@ import { Eye, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { ExpandableDescription } from "@/components/ExpandableDescription";
 import { SongList } from "@/components/song-list";
-import { redirect } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 import { properFilter } from "@/lib/utils";
 import Link from "next/link";
 
@@ -57,6 +57,7 @@ export default function PlaylistPage(props: PageProps) {
   const [playlistOwnerName, setPlaylistOwnerName] = useState<string>(""); // Name of the playlist owner
   const [playlistOwnerImage, setPlaylistOwnerImage] = useState<string>(""); // Image of the playlist owner
   const [playlistOwnerUsername, setPlaylistOwnerUsername] = useState<string>(""); // Username of the playlist owner
+  const router = useRouter();
 
   // Load user data and playlist details when the component mounts
   useEffect(() => {
@@ -276,7 +277,7 @@ export default function PlaylistPage(props: PageProps) {
     else updatedDescription = properFilter(updatedDescription); // Clean the description using bad-words filter
     let updatedCoverArt = formData.get("coverArt") as string;
     if (!updatedCoverArt) {
-      updatedCoverArt = playlist?.coverArt || "/default-playlist-image.png"; // Fallback to current cover art if empty
+      updatedCoverArt = playlist?.coverArt || ""; // Fallback to current cover art if empty
     }
     // Use the state variable for visibility, not formData
     const updatedVisibility = visibility === "public" ? 1 : 0;
@@ -456,7 +457,7 @@ export default function PlaylistPage(props: PageProps) {
     } else {
       toast.success("Playlist saved to your library!");
     }
-
+    router.refresh();
   }
   /// <summary>
   /// Function to unsave the playlist from the user's library.
