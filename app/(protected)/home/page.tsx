@@ -75,7 +75,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-full text-center p-4">
+    <div className="flex flex-col items-center h-screen w-full text-center p-4 mt-10">
       {/* Welcome message */}
       <h1 className="flex items-baseline justify-center text-4xl font-bold mb-4 max-w-lg w-full">
         <span className="flex-shrink-0">Welcome back,&nbsp;</span>
@@ -104,7 +104,7 @@ export default function HomePage() {
           Get back to listening to your favorite music, or discover new tracks!
         </p>
         { /* Saved albums list */}
-        <div className="max-w-4xl w-full mt-6">
+        <div className="max-w-5xl w-full mt-6 items-center">
         <AlbumList albums={savedAlbums ? savedAlbums : []} />
         </div>
       </div>
